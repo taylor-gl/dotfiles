@@ -48,4 +48,6 @@ set backspace=indent,eol,start
 filetype plugin on
 " infect your precious pure vim with nasty plugins
 execute pathogen#infect()
+" change path for vimwiki
+let g:vimwiki_list = [{'path':'~/.vimwiki', 'path_html':'~/.vimwiki_html'}]
 
