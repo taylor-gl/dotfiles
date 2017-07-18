@@ -3,7 +3,7 @@
 !Xcursor.size: 22
 
 !Font: (make sure to escape hyphens in FONTNAME with double slash
-URxvt.font:xft:Droid Sans Mono Slashed For Powerline:size=8:antialias=false
+URxvt.font:xft:Droid Sans Mono Slashed For Powerline:size=12:antialias=false
 URxvt.letterSpace: -l
 
 ! Solarized Theme
