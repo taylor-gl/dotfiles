@@ -129,7 +129,7 @@ bindsym $mod+Shift+c reload
 # restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
 bindsym $mod+Shift+r restart
 # exit i3 (logs you out of your X session)
-bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
+bindsym $mod+Shift+Escape exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
 
 # resize window (you can also use the mouse for that)
 mode "resize" {
@@ -169,7 +169,7 @@ for_window [class="firefox"] border none
 focus_follows_mouse no
 
 # use i3lock-blur
-bindsym $mod+Shift+Return exec "i3lock-bluricon"
+bindsym $mod+Escape exec "i3lock-bluricon"
 
 # use xkill
 bindsym $mod+x --release exec --no-startup-id xkill
@@ -209,9 +209,9 @@ client.urgent $orange $red $base3 $red
 # finds out, if available)
 bar {
         status_command i3blocks -c ~/.i3/i3blocks.conf
-        tray_output primary
+        #tray_output primary
         font pango:"Droid Sans Mono Slashed for Powerline", FontAwesome 10
-       colors {
+        colors {
                 background $base03
                 separator $base02
                 # workspace border background text

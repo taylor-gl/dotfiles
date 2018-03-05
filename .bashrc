@@ -65,3 +65,6 @@ export PATH=$COCOS_X_ROOT:$PATH
 # Add environment variable COCOS_TEMPLATES_ROOT for cocos2d-x
 export COCOS_TEMPLATES_ROOT=/opt/cocos2d-x/templates
 export PATH=$COCOS_TEMPLATES_ROOT:$PATH
+
+# Add ruby gem bin to path
+export PATH=$PATH:/home/taylor/.gem/ruby/2.4.0/bin
