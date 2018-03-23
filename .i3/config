@@ -3,6 +3,8 @@
 set $default_term urxvt  
 # set the default browser
 set $default_browser firefox
+# set the default file explorer
+set $default_file_explorer nautilus
 # set the modifier key to the OS key (Mod4)
 set $mod Mod4  
 set $border 2
@@ -23,6 +25,9 @@ bindsym $mod+Return exec $default_term
 
 # launch a web browser
 bindsym $mod+c exec $default_browser
+
+# launch a file explorer
+bindsym $mod+n exec $default_file_explorer
 
 # kill focused window
 bindsym $mod+Shift+q kill

@@ -42,6 +42,7 @@ set softtabstop=4
 set expandtab
 " allow backspacing over autoindent, line breaks, and start of insert action
 set backspace=indent,eol,start
+set mouse=a
 
 " ----- plugin options -----
 " enable loading plugin files for filetypes

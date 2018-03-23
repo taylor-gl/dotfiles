@@ -29,9 +29,6 @@ export QSYS_ROOTDIR="/home/taylor/software/Quartus/quartus/sopc_builder/bin"
 
 export ALTERAOCLSDKROOT="/home/taylor/software/Quartus/hld"
 
-# add an alias to run quartus properly
-alias quartus="quartus --64bit"
-
 # add an alias to colorize cat using vim
 alias cat="vimcat"
 
@@ -68,3 +65,6 @@ export PATH=$COCOS_TEMPLATES_ROOT:$PATH
 
 # Add ruby gem bin to path
 export PATH=$PATH:/home/taylor/.gem/ruby/2.4.0/bin
+
+# Add vim as editor
+export EDITOR="vim"
