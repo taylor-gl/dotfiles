@@ -51,4 +51,3 @@ filetype plugin on
 execute pathogen#infect()
 " change path for vimwiki
 let g:vimwiki_list = [{'path':'~/.vimwiki', 'path_html':'~/.vimwiki_html'}]
-

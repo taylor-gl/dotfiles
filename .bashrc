@@ -11,6 +11,7 @@ PS1='[\u@\h \W]\$ '
 eval $(dircolors -b)
 alias grep='grep --color=auto'
 alias diff=colordiff
+alias ls='ls -F'
 
 # customize bash prompts
 export PS1="[\w]\\$ "
@@ -68,3 +69,5 @@ export PATH=$PATH:/home/taylor/.gem/ruby/2.4.0/bin
 
 # Add vim as editor
 export EDITOR="vim"
+
+cdls() { cd "$@" && ls; }
