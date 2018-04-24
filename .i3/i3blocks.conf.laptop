@@ -69,13 +69,13 @@ label=
 interval=10
 
 [brightness]
-label=__
-command=~/i3/brightness.sh
+label=
+command=~/.i3/brightness.sh
 interval=1
 
 [battery]
-label=__
-interval=15
+label=
+interval=30
 
 # Key indicators
 #
