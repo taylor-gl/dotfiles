@@ -65,7 +65,7 @@ export COCOS_TEMPLATES_ROOT=/opt/cocos2d-x/templates
 export PATH=$COCOS_TEMPLATES_ROOT:$PATH
 
 # Add ruby gem bin to path
-export PATH=$PATH:/home/taylor/.gem/ruby/2.4.0/bin
+export PATH=$PATH:/home/taylor/.gem/ruby/2.5.0/bin
 
 # Add vim as editor
 export EDITOR="vim"

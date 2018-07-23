@@ -2,7 +2,7 @@
 # set the default terminal
 set $default_term urxvt  
 # set the default browser
-set $default_browser firefox
+set $default_browser chromium
 # set the default file explorer
 set $default_file_explorer nautilus
 # set the modifier key to the OS key (Mod4)
@@ -16,7 +16,6 @@ set $left h
 set $right l
 #####################
 
-
 # use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
 
@@ -24,10 +23,13 @@ floating_modifier $mod
 bindsym $mod+Return exec $default_term
 
 # launch a web browser
-bindsym $mod+c exec $default_browser
+bindsym $mod+b exec $default_browser
 
 # launch a file explorer
 bindsym $mod+n exec $default_file_explorer
+
+# launch a communications app (discord)
+bindsym $mod+c exec discord
 
 # kill focused window
 bindsym $mod+Shift+q kill
@@ -174,7 +176,7 @@ for_window [class="firefox"] border none
 focus_follows_mouse no
 
 # use i3lock-blur
-bindsym $mod+Escape exec "i3lock-bluricon"
+bindsym $mod+Escape exec "i3lock-extra --screenshot --pixelize --pixelize-scale 5"
 
 # use xkill
 bindsym $mod+x --release exec --no-startup-id xkill
@@ -229,13 +231,26 @@ bar {
 # background wallpaper color
 exec xsetroot -solid "#002b36" # this is base03
 
+exec dropbox
+
+exec redshift
+
 # i3blocks caps lock and num lock detection
 bindsym --release Caps_Lock exec pkill -SIGRTMIN+11 i3blocks
 bindsym --release Num_Lock  exec pkill -SIGRTMIN+11 i3blocks
 
 # volume keybindings
-bindsym $mod+greater exec "amixer -q sset Master,0 1000+ unmute"
-bindsym $mod+less exec "amixer -q sset Master,0 1000- unmute"
+# PC
+# bindsym $mod+greater exec "amixer -q sset Master,0 1000+ unmute"
+# bindsym $mod+less exec "amixer -q sset Master,0 1000- unmute"
+# Laptop
+bindsym XF86AudioRaiseVolume exec "pactl set-sink-volume 0 +10%"
+bindsym XF86AudioLowerVolume exec "pactl set-sink-volume 0 -10%"
+bindsym XF86AudioMute exec "pactl set-sink-mute 0 toggle"
+
+# brightness keybindings
+bindsym XF86MonBrightnessUp exec "xbacklight + 5"
+bindsym XF86MonBrightnessDown exec "xbacklight - 5"
 
 # sleep keybindings
 bindsym $mod+Shift+s exec systemctl suspend
