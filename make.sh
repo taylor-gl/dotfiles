@@ -2,7 +2,7 @@
 
 dir=~/dotfiles
 olddir=~/.dotfiles_backup
-files=".bashrc .vimrc .i3"
+files=".bashrc .i3 .Xresources .spacemacs"
 
 echo "Creating $olddir in ~ as a backup of existing dotfiles in ~"
 mkdir -p $olddir
