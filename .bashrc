@@ -20,11 +20,14 @@ alias less=vimpager
 # alias less='/usr/share/vim/vim74/macros/less.sh'
 
 # add an alias to colorize cat using vim
-alias cat="vimcat"
+# alias cat="vimcat"
 
 # limit mv and rm to prevent unintentional sadness
 alias mv=' timeout 8 mv -iv'
 alias rm=' timeout 3 rm -Iv --one-file-system'
+
+alias ..='cd ..'
+alias ...='cd ../..'
 
 # add ~/.scripts to path
 PATH=$PATH:~/.scripts:.
@@ -33,11 +36,26 @@ PATH=$PATH:~/.scripts:.
 PATH=$PATH:~/.local/bin
 export PATH=/usr/local/bin:${PATH}
 
+# add sbin folders to path
+export PATH=$PATH:/sbin
+export PATH=$PATH:/usr/sbin
+
+# add emacs bin to path
+export PATH=$PATH:~/.emacs.d/bin
+
 # Add ruby gem bin to path
 export PATH=$PATH:/home/taylor/.gem/ruby/2.5.0/bin
 
 # Add rust cargo to path
 export PATH=$PATH:/home/taylor/.cargo/bin
+export PATH=$PATH:/home/taylor/.cargo/env
+
+# set the path for locate to the home directory
+export LOCATE_PATH=/home/taylor/.locate.db
+
+# Add go to path
+export GOROOT=/usr/local/go
+export PATH=$PATH:$GOROOT/bin
 
 # add pyenv to path
 export PATH="/home/taylor/.pyenv/bin:$PATH"
@@ -64,8 +82,8 @@ man() {
 # Add emacs as editor
 # -c creates a new frame (window)
 # -a="" ensures the daemon will be opened if necessary
-export EDITOR='emacsclient -c -a=""'
-alias e='emacsclient -c -a=""'
+export EDITOR='emacs'
+e() { (emacs "$@" &> /dev/null &) }
 
 alias youtube-to-mp3='youtube-dl --extract-audio --audio-format mp3'
 
@@ -94,3 +112,5 @@ export WINIT_HIDPI_FACTOR=1.0 alacritty
 # Load nvm into path:
 export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+source ~/.bash_completion/alacritty
+source ~/.bash_completion/alacritty

@@ -1,3 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-/usr/bin/xbacklight -set 100
+# run as root
+ddcutil --display 1 setvcp 10 100
