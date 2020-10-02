@@ -1,0 +1,14 @@
+# key: $$def
+# name: org-drill definition question
+# expand-env: ((yas/indent-line (quote auto)) (yas/wrap-around-region (quote nil)))
+# --
+$0
+`(concat (make-string (org-current-level) ?*) "*")` Question $1 :drill:
+:PROPERTIES:
+:DRILL_CARD_TYPE: multisided
+:END:
+Definition question
+`(concat (make-string (org-current-level) ?*) "**")` Term
+`(make-string (org-current-level) ?\s)`$2
+`(concat (make-string (org-current-level) ?*) "**")` Definition
+`(make-string (org-current-level) ?\s)`$3
