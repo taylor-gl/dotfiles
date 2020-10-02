@@ -189,19 +189,19 @@
 (setq org-agenda-skip-deadline-if-done t)
 
 ;; filter all :drill: items from org-agenda
-(defun my-skip-tag(tag)
-  "Skip entries that are tagged TAG"
-  (let* ((entry-tags (org-get-tags-at (point))))
-    (if (member tag entry-tags)
-        (progn (outline-next-heading) (point))
-      nil)))
-(setq org-agenda-custom-commands
-      '(("n" "Agenda and all TODOs"
-         ((agenda ""
-                  (
-                   (org-agenda-skip-function '(my-skip-tag "drill"))
-                   ))
-          (alltodo "")))))
+;; (defun my-skip-tag(tag)
+  ;; "Skip entries that are tagged TAG"
+  ;; (let* ((entry-tags (org-get-tags-at (point))))
+    ;; (if (member tag entry-tags)
+        ;; (progn (outline-next-heading) (point))
+      ;; nil)))
+;; (setq org-agenda-custom-commands
+      ;; '(("n" "Agenda and all TODOs"
+         ;; ((agenda ""
+                  ;; (
+                   ;; (org-agenda-skip-function '(my-skip-tag "drill"))
+                   ;; ))
+          ;; (alltodo "")))))
 
 ;; disable flycheck in org files
 (setq flycheck-global-modes '(not org-mode))
