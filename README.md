@@ -1,6 +1,6 @@
 # A collection of my dotfiles
 
-I'm currently running Debian on my desktop with i3 and emacs.
+I'm currently running Debian on my desktop with i3 and emacs. Everything that can be Solarized dark is Solarized dark.
 
 -----
 
@@ -16,6 +16,11 @@ I'm currently running Debian on my desktop with i3 and emacs.
 -----
 
 ## doom emacs stuff
+| File        | Description                                                                                                                                                                                                                                                                   |
+|-------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| init.el     | The default doom packages I have enabled. Some stuff I have enabled, but don't use yet, like the RSS stuff.                                                                                                                                                                   |
+| packages.el | Packages which don't come with Doom. They include [emojify](https://github.com/iqbalansari/emacs-emojify) to add emoji support 😂, and [evil-colemak-basics](https://github.com/wbolster/evil-colemak-basics) to provide basic colemak keybindings (though many are missing). |
+| config.el            | My personal emacs config. It includes a lot of remapping to colemak keybindings, as well as [Fira Code](https://github.com/tonsky/FiraCode/wiki/Emacs-instructions).                                                                                                                                                                                                                                                                              |
 
 -----
 
