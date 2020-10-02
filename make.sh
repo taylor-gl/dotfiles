@@ -2,7 +2,7 @@
 
 dir=~/Dropbox/dotfiles
 olddir=~/.dotfiles_backup
-files=".bashrc .i3 .Xresources .scripts .profile .Xmodmap"
+files=".bashrc .i3 doom.d .scripts .profile .Xkeymap"
 
 echo "Creating $olddir in ~ as a backup of existing dotfiles in ~"
 mkdir -p $olddir
