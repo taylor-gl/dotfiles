@@ -32,6 +32,9 @@ alias ...='cd ../..'
 # add ~/.scripts to path
 PATH=$PATH:~/.scripts:.
 
+# add blog scripts to path
+PATH=$PATH:~/blog/scripts/
+
 # add ~/.local/bin to path
 PATH=$PATH:~/.local/bin
 export PATH=/usr/local/bin:${PATH}
