@@ -5,3 +5,6 @@ tmp/
 .directory
 
 mail.sh
+
+i3blocks-anachron/
+i3blocks-contrib/
