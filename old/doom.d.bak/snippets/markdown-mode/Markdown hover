@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: Markdown hover
+# key: $$h
+# --
+{{ fn(text="$1", hover="$2") }}$0

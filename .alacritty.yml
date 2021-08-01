@@ -1,0 +1,44 @@
+TERM: alacritty
+font:
+  normal:
+    family: "FantasqueSansMono Nerd Font Mono"
+    style: Regular
+  size: 12.0
+colors:
+  primary:
+    background: '0x282828'
+    foreground: '0xebdbb2'
+    dim_foreground: '0xd5c4a1'
+    bright_foreground: '0xfbf1c7'
+  normal:
+    black:   '0x000000'
+    red:     '0xfb4934'
+    green:   '0xb8bb26'
+    yellow:  '0xfabd2f'
+    blue:    '0x83a598'
+    magenta: '0xd3869b'
+    cyan:    '0x8ec07c'
+    white:   '0x93a1a1'
+  bright:
+    black:   '0x928374'
+    red:     '0xfb4934'
+    green:   '0xb8bb26'
+    yellow:  '0xfabd2f'
+    blue:    '0x83a598'
+    magenta: '0xd3869b'
+    cyan:    '0x8ec07c'
+    white:   '0xebdbb2'
+  dim:
+    black:   '0x000000'
+    red:     '0xcc241d'
+    green:   '0x98971a'
+    yellow:  '0xd79921'
+    blue:    '0x458588'
+    magenta: '0xb16286'
+    cyan:    '0x689d6a'
+    white:   '0x9a9a9a'
+background_opacity: 1.0
+mouse:
+  hints:
+    launcher:
+      program: xdg-open

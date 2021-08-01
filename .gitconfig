@@ -1,0 +1,8 @@
+[user]
+	email = taylor@taylor.gl
+	name = Taylor G. Lunt
+	signingkey = CA05241A341F8CF7
+[commit]
+	gpgsign = true
+[includeIf "gitdir:~/bl/"]
+	path = ~/.gitconfig-work
