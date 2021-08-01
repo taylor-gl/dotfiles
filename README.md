@@ -113,7 +113,7 @@ When a package is masked, consider adding the package name to `/etc/portage/pack
 
 Install the following software (some software, like emacs, vivaldi, layman, or nvidia-drivers may have custom USE flags worth setting first in `/etc/portage/package.use/` directory):
 ```bash
-emerge --ask =app-editors/emacs-28.0.9999 app-admin/logrotate app-admin/sysstat app-arch/rpm app-misc/anki app-misc/colordiff app-misc/ddcutil app-misc/elasticsearch app-misc/screenfetch app-misc/sl app-misc/trash-cli app-office/libreoffice app-portage/eix app-portage/gentoolkit app-portage/layman app-text/evince app-text/tree dev-db/postgresql dev-db/postgis dev-lang/erlang dev-lang/elixir dev-python/keyring gnome-base/gnome-keyring lxde-base/lxappearance media-fonts/fontawesome media-gfx/feh media-gfx/gimp media-gfx/inkscape media-gfx/scrot media-gfx/xsane media-gfx/simple-scan media-sound/alsa-plugins media-sound/audacity media-sound/paprefs media-sound/pavucontrol media-sound/playerctl media-sound/pulseaudio net-im/discord net-libs/nodejs net-misc/dropbox net-p2p/qbittorrent net-print/cups sys-apps/lm-sensors sys-apps/lsd sys-apps/the_silver_searcher sys-fs/inotify_tools www-servers/nginx x11-apps/xkill x11-drivers/nvidia-drivers x11-misc/i3blocks x11-misc/rofi x11-misc/xclip x11-terms/alacritty x11-themes/gtk-engines-murrine x11-wm/i3-gaps
+emerge --ask =app-editors/emacs-28.0.9999 app-admin/logrotate app-admin/sysstat app-arch/rpm app-misc/anki app-misc/colordiff app-misc/ddcutil app-misc/elasticsearch app-misc/screenfetch app-misc/sl app-misc/trash-cli app-office/libreoffice app-portage/eix app-portage/gentoolkit app-portage/layman app-text/evince app-text/tree dev-db/postgresql dev-db/postgis dev-lang/erlang dev-lang/elixir dev-python/keyring gnome-base/gnome-keyring lxde-base/lxappearance media-fonts/dejavu media-fonts/fontawesome media-gfx/feh media-gfx/gimp media-gfx/inkscape media-gfx/scrot media-gfx/xsane media-gfx/simple-scan media-sound/alsa-plugins media-sound/audacity media-sound/paprefs media-sound/pavucontrol media-sound/playerctl media-sound/pulseaudio net-im/discord net-libs/nodejs net-misc/dropbox net-p2p/qbittorrent net-print/cups sys-apps/lm-sensors sys-apps/lsd sys-apps/the_silver_searcher sys-fs/inotify_tools www-servers/nginx x11-apps/xkill x11-drivers/nvidia-drivers x11-misc/i3blocks x11-misc/rofi x11-misc/xclip x11-terms/alacritty x11-themes/gtk-engines-murrine x11-themes/neutral-xcursors x11-wm/i3-gaps
 
 npm install -g tldr
 
@@ -124,6 +124,8 @@ layman -a steam-overlay
 emerge --sync
 
 emerge –ask =net-vpn/nordvpn-3.8.7 games-action/minecraft-launcher games-util/steam-launcher games-util/steam-meta
+
+/usr/bin/steam
 ```
 
 Make some directories:
