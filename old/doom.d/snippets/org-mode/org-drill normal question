@@ -1,0 +1,9 @@
+# key: $$qa
+# name: org-drill normal question
+# expand-env: ((yas/indent-line (quote auto)) (yas/wrap-around-region (quote nil)))
+# --
+$0
+`(concat (make-string (org-current-level) ?*) "*")` Question $1 :drill:
+`(make-string (org-current-level) ?\s)`$2
+`(concat (make-string (org-current-level) ?*) "**")` Answer
+`(make-string (org-current-level) ?\s)`$3

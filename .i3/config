@@ -1,341 +1,391 @@
-################################################################################
-# VARIABLES
-################################################################################
-# change keyboard layout using .Xmodmap file
-# to see modifier keys, do xmodmap -pm
-# exec_always xmodmap ~/.Xmodmap
+# NOTE Depends on i3gaps, and helpers-for-i3, which itself depends on i3ipc for python
 
-# set the default terminal
-set $default_term alacritty
-# set the default browser
-set $default_browser brave-browser
-# set the default file explorer
-# set $default_file_explorer thunar
-set $default_file_explorer dolphin --stylesheet /home/taylor/.scripts/dolphin_style.qss
-# set the default mail reader
-set $default_mail thunderbird
+# modifier keys
+set $alt Mod1
+set $sup Mod4
 
-# set a variable for the hyper key
-set $hyper Mod3
-# set the modifier key to the OS key (Mod4)
-set $mod Mod4
-# set a variable for the Mode_shift key
-set $mode Mod5
+# function keys
+set $f13 XF86Tools
+set $f14 XF86Launch5
+set $f15 XF86Launch6
+set $f20 XF86AudioMicMute
+
+# media keys (for my headphones)
+set $play XF86AudioPlay
+set $stop XF86AudioStop
+set $next XF86AudioNext
+set $previous XF86AudioPrev
+
+# programs
+set $web_browser vivaldi
+set $file_browser dolphin
+set $editor emacsclient --create-frame --no-wait --alternate-editor=""
 
 # use these keys for focus, movement, and resize directions when reaching for
 # the arrows is not convenient
-set $left h
-set $down n
 set $up e
+set $down n
+set $left h
 set $right i
 
-# set the border size
-set $border 2
+# media controls
+# to control media in the browser, consider the browser-playerctl chrome plugin
+bindsym $play exec playerctl play-pause
+bindsym $stop exec playerctl stop
+bindsym $next exec playerctl next
+bindsym $previous exec playerctl previous
 
-
-################################################################################
-# i3 - basic keybindings
-################################################################################
-# reload the configuration file
-# bindsym $mod+Shift+c reload
-# restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
-bindsym $mod+Shift+r restart
-# exit i3 (logs you out of your X session)
-bindsym $mod+Shift+Escape exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
-
-
-################################################################################
-# Media keys
-################################################################################
-# volume
-bindsym XF86AudioRaiseVolume exec amixer -q -D pulse sset Master 5%+ && pkill -RTMIN+10 i3blocks
-bindsym XF86AudioLowerVolume exec amixer -q -D pulse sset Master 5%- && pkill -RTMIN+10 i3blocks
-bindsym XF86AudioMute exec amixer -q -D pulse sset Master toggle && pkill -RTMIN+10 i3blocks
-
-
-################################################################################
-# Ergodox macros (bound to function keys)
-################################################################################
-# make the f13 key toggle microphone loopback
-bindsym XF86Tools exec toggle_loopback.sh
-
-# take a selected screenshot, or a full-window screenshot on holding shift
-bindsym --release XF86Launch5 exec "scrot -s"
-bindsym --release Shift+XF86Launch5 exec "scrot -u"
-
-# make f16 play the (selection) clipboard link in vlc
-bindsym --release XF86Launch7 exec "vlc $(xclip -o)"
-
-
-################################################################################
-# HYPER - for managing software and utilities
-################################################################################
-# rofi uses papirus icon theme
-# use rofi to launch programs
-bindsym $hyper+d exec "rofi -location 1 -width 100 -lines 6 -bw 0 -separator-style none -theme solarized -show drun -modi drun \
-        -hide-scrollbar -icon-theme \\"Papirus\\" -show-icons -font \\"Source Code Pro, FontAwesome 12\\""
-
-# use rofi to switch windows
-bindsym $hyper+w exec "rofi -location 1 -width 100 -lines 6 -bw 0 -separator-style none -theme solarized -show window -modi window \
-        -hide-scrollbar -icon-theme \\"Papirus\\" -show-icons -font \\"Source Code Pro, FontAwesome 12\\""
-
-# start a terminal
-bindsym $mod+Return exec $default_term
-bindsym $hyper+Return exec $default_term
-
-# launch a web browser
-bindsym $hyper+b exec $default_browser
-
-# launch a file explorer
-bindsym $hyper+t exec $default_file_explorer
-
-# launch a communications app (discord)
-bindsym $hyper+c exec discord
-
-# launch the mail reader
-bindsym $hyper+m exec $default_mail
-
-# launch emacs
-bindsym $hyper+space exec "emacs ~/Dropbox/emacs/todo.org"
-bindsym $hyper+e exec emacs
-
-
-################################################################################
-# STARTUP PROGRAMS
-################################################################################
-exec ~/.dropbox-dist/dropboxd
-
-exec redshift
-
-exec nordvpn connect canada
-
-exec blueman-applet
-
-# to disable Firefox ctrl+q close window shortcut
-exec autokey
-
-
-################################################################################
-# THEME
-################################################################################
-
-# configure font
-font pango:Source Code Pro, FontAwesome 12
-
-# remove vertical/horizontal edge indicators
-hide_edge_borders none
-
-# colors (standard solarized names except base0 is called base0_ to prevent errors)
-set $base03 #002b36
-set $base02 #073642
-set $base01 #586e75
-set $base00 #657b83
-set $base0_ #839496
-set $base1 #93a1a1
-set $base2 #eee8d5
-set $base3 #fdf6e3
-set $yellow #b58900
-set $orange #cb4b16
-set $red #dc322f
-set $magenta #d33682
-set $violet #6c71c4
-set $blue #268bd2
-set $cyan #2aa198
-set $green #859900
-
-# window colors
-# client border background text indicator
-client.focused $green $green $base3 $green
-client.focused_inactive $blue $blue $base2 $base01
-client.unfocused $blue $blue $base1 $base01
-client.urgent $orange $red $base3 $red
-
-# background wallpaper color
-exec xsetroot -solid "#002b36" # this is base03
-
-# disable title bar for all windows by default
-new_window pixel $border
-new_float pixel $border
-
-# make certain windows bordered
-for_window [class="urxvt"] border pixel $border
-
-
-################################################################################
-# SUPER - for window management
-################################################################################
-# use Mouse+$mod to drag floating windows to their wanted position
-floating_modifier $mod
+# use Mouse+Mod1 to drag floating windows to their wanted position
+floating_modifier $alt
 
 # kill focused window
-bindsym $mod+Shift+q kill
+bindsym $sup+$f20 kill
 
-# kill target window with xkill
-bindsym $mod+x --release exec --no-startup-id xkill
+# kill clicked window
+bindsym --release $sup+Shift+$f20 exec xkill
+
+# terminal
+# bindsym $sup+Return exec ~/.scripts/alacritty
+bindsym $sup+Return exec alacritty
+
+# monitor brightness
+bindsym $sup+minus exec ~/.scripts/set-brightness-0.sh
+bindsym $sup+equal exec ~/.scripts/set-brightness-100.sh
+
+# take a screenshot
+bindsym --release $f14 exec scrot ~/Screenshots/%F_%T_$wx$h.png --select -e 'xclip -selection clipboard -target image/png -i $f'
+
+# program launcher
+bindsym $sup+x exec rofi -show drun -theme dmenu
+
+# shortcuts for launching programs
+bindsym $sup+a exec anki
+bindsym $sup+b exec $web_browser
+bindsym $sup+c exec discord
+bindsym $sup+d exec $file_browser
+bindsym $sup+space exec $editor
 
 # change focus
-bindsym $mod+$left focus left
-bindsym $mod+$down focus down
-bindsym $mod+$up focus up
-bindsym $mod+$right focus right
+bindsym $sup+$left focus left
+bindsym $sup+$down focus down
+bindsym $sup+$up focus up
+bindsym $sup+$right focus right
 
 # alternatively, you can use the cursor keys:
-bindsym $mod+Left focus left
-bindsym $mod+Down focus down
-bindsym $mod+Up focus up
-bindsym $mod+Right focus right
+bindsym $sup+Left focus left
+bindsym $sup+Down focus down
+bindsym $sup+Up focus up
+bindsym $sup+Right focus right
 
 # move focused window
-bindsym $mod+Shift+$left move left
-bindsym $mod+Shift+$down move down
-bindsym $mod+Shift+$up move up
-bindsym $mod+Shift+$right move right
+bindsym $sup+Shift+$left move left
+bindsym $sup+Shift+$down move down
+bindsym $sup+Shift+$up move up
+bindsym $sup+Shift+$right move right
 
 # alternatively, you can use the cursor keys:
-bindsym $mod+Shift+Left move left
-bindsym $mod+Shift+Down move down
-bindsym $mod+Shift+Up move up
-bindsym $mod+Shift+Right move right
-
-# split in vertical orientation
-bindsym $mod+v split v
+bindsym $sup+Shift+Left move left
+bindsym $sup+Shift+Down move down
+bindsym $sup+Shift+Up move up
+bindsym $sup+Shift+Right move right
 
 # split in horizontal orientation
-# was $mod+h but conflicted with vim-like movement keys
-bindsym $mod+Shift+v split h
+bindsym $sup+Shift+v split h
+
+# split in vertical orientation
+bindsym $sup+v split v
 
 # enter fullscreen mode for the focused container
-bindsym $mod+f fullscreen toggle
+bindsym $sup+t fullscreen toggle
+
+# switch container layout (stacked, tabbed, toggle split)
+bindsym $sup+s layout toggle stacked tabbled split
+
+# toggle tiling / floating
+bindsym $alt+Shift+space floating toggle
 
 # move the currently focused window to the scratchpad
-bindsym $mod+Shift+minus move scratchpad
+bindsym $sup+Shift+$f15 move scratchpad
 
 # Show the next scratchpad window or hide the focused scratchpad window.
 # If there are multiple scratchpad windows, this command cycles through them.
-bindsym $mod+minus scratchpad show
+bindsym $sup+$f15 scratchpad show
 
-set $workspace1 "1"
-set $workspace2 "2"
-set $workspace3 "3"
-set $workspace4 "4"
-set $workspace5 "5"
-set $workspace6 "6"
-set $workspace7 "7"
-set $workspace8 "8"
-set $workspace9 ""
-set $workspace10 ""
+# Define names for default workspaces for which we configure key bindings later on.
+# We use variables to avoid repeating the names in multiple places.
+set $wsq "q"
+set $wsw "w"
+set $wsf "f"
+set $wsp "p"
+set $wsg "g"
+set $wsj "j"
+set $wsl "l"
+set $wsu "u"
+set $wsy "y"
 
 # switch to workspace
-bindsym $mod+1 workspace $workspace1
-bindsym $mod+2 workspace $workspace2
-bindsym $mod+3 workspace $workspace3
-bindsym $mod+4 workspace $workspace4
-bindsym $mod+5 workspace $workspace5
-bindsym $mod+6 workspace $workspace6
-bindsym $mod+7 workspace $workspace7
-bindsym $mod+8 workspace $workspace8
-bindsym $mod+0 workspace $workspace9
-bindsym $mod+9 workspace $workspace10
+bindsym $sup+q workspace $wsq
+bindsym $sup+w workspace $wsw
+bindsym $sup+f workspace $wsf
+bindsym $sup+p workspace $wsp
+bindsym $sup+g workspace $wsg
+bindsym $sup+j workspace $wsj
+bindsym $sup+l workspace $wsl
+bindsym $sup+u workspace $wsu
+bindsym $sup+y workspace $wsy
 
 # move focused container to workspace
-bindsym $mod+Ctrl+1 move container to workspace $workspace1
-bindsym $mod+Ctrl+2 move container to workspace $workspace2
-bindsym $mod+Ctrl+3 move container to workspace $workspace3
-bindsym $mod+Ctrl+4 move container to workspace $workspace4
-bindsym $mod+Ctrl+5 move container to workspace $workspace5
-bindsym $mod+Ctrl+6 move container to workspace $workspace6
-bindsym $mod+Ctrl+7 move container to workspace $workspace7
-bindsym $mod+Ctrl+8 move container to workspace $workspace8
-bindsym $mod+Ctrl+0 move container to workspace $workspace9
-bindsym $mod+Ctrl+9 move container to workspace $workspace10
+bindsym $sup+Shift+q move container to workspace $wsq
+bindsym $sup+Shift+w move container to workspace $wsw
+bindsym $sup+Shift+f move container to workspace $wsf
+bindsym $sup+Shift+p move container to workspace $wsp
+bindsym $sup+Shift+g move container to workspace $wsg
+bindsym $sup+Shift+j move container to workspace $wsj
+bindsym $sup+Shift+l move container to workspace $wsl
+bindsym $sup+Shift+u move container to workspace $wsu
+bindsym $sup+Shift+y move container to workspace $wsy
 
-# resize window (you can also use the mouse for that)
-mode "resize" {
-        # These bindings trigger as soon as you enter the resize mode
+# reload the configuration file
+bindsym $sup+Shift+c reload
+# restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
+bindsym $sup+r restart
+# exit i3 (logs you out of your X session)
+bindsym $sup+Shift+r exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
 
-        # Pressing left will shrink the window’s width.
-        # Pressing right will grow the window’s width.
-        # Pressing up will shrink the window’s height.
-        # Pressing down will grow the window’s height.
-        bindsym $left       resize shrink width 8 px or 8 ppt
-        bindsym $down       resize grow height 8 px or 8 ppt
-        bindsym $up         resize shrink height 8 px or 8 ppt
-        bindsym $right      resize grow width 8 px or 8 ppt
+# resize window
+bindsym $alt+Shift+$left resize shrink width 10 px or 10 ppt
+bindsym $alt+Shift+$down resize grow height 10 px or 10 ppt
+bindsym $alt+Shift+$up resize shrink height 10 px or 10 ppt
+bindsym $alt+Shift+$right resize grow width 10 px or 10 ppt
+# bindsym $alt+Shift+$left exec i3-smart-resize "Left" "70 px"
+# bindsym $alt+Shift+$right exec i3-smart-resize "Right" "70 px"
+# bindsym $alt+Shift+$up exec i3-smart-resize "Up" "70 px"
+# bindsym $alt+Shift+$down exec i3-smart-resize "Down" "70 px"
+# bindsym --release $alt+Shift+$left exec i3-smart-resize "Left" "70 px"
+# bindsym --release $alt+Shift+$right exec i3-smart-resize "Right" "70 px"
+# bindsym --release $alt+Shift+$up exec i3-smart-resize "Up" "70 px"
+# bindsym --release $alt+Shift+$down exec i3-smart-resize "Down" "70 px"
 
-        # same bindings, but for the arrow keys
-        bindsym Left        resize shrink width 8 px or 8 ppt
-        bindsym Down        resize grow height 8 px or 8 ppt
-        bindsym Up          resize shrink height 8 px or 8 ppt
-        bindsym Right       resize grow width 8 px or 8 ppt
+# disable mouse warping
+# otherwise, i3 will sometimes start moving the wrong window, because the wrong window will become focused
+mouse_warping none
 
-        # back to normal: Enter or Escape
-        bindsym Return mode "default"
+#######################################################################
+# KDE specific settings
+#######################################################################
+for_window [title="Desktop — Plasma"] kill; floating enable; border none
+for_window [class="plasmashell"] floating enable;
+for_window [class="Plasma"] floating enable; border none
+for_window [title="plasma-desktop"] floating enable; border none
+for_window [title="win7"] floating enable; border none
+for_window [class="krunner"] floating enable; border none
+for_window [class="Kmix"] floating enable; border none
+for_window [class="Klipper"] floating enable; border none
+for_window [class="Plasmoidviewer"] floating enable; border none
+for_window [class="(?i)*nextcloud*"] floating disable
+for_window [class="plasmashell" window_type="notification"] floating enable, border none, move right 700px, move down 450px
+no_focus [class="plasmashell" window_type="notification"]
+
+
+#######################################################################
+# Theme
+# Gruvbox theme for i3 modified from:
+# https://github.com/a-schaefers/i3-wm-gruvbox-theme/blob/master/i3/config#L97
+#######################################################################
+# set primary gruvbox colorscheme colors
+set $bg0_h #1d2021
+set $bg #282828
+set $red #cc241d
+set $green #98971a
+set $yellow #d79921
+set $blue #458588
+set $purple #b16286
+set $aqua #689d68
+set $gray #a89984
+set $darkgray #1d2021
+
+# font used by i3 for titles and bars
+font pango:FontAwesome,FantasqueSansMono Nerd Font Mono 12
+
+# window borders
+default_border pixel 1
+default_floating_border pixel 1
+
+bar {
+    position bottom
+    status_command i3blocks -c ~/.i3blocks.conf
+    colors {
+        # bar background color
+        background $bg0_h
+	# bar separators
+	separator $bg
+        # text color used for blocks that do not have a color specified.
+        statusline $yellow
+        # workspaces section
+        #                    border  backgr. text
+        focused_workspace    $aqua $aqua $darkgray
+        inactive_workspace   $darkgray $darkgray $yellow
+        active_workspace     $darkgray $darkgray $yellow
+        urgent_workspace     $red $red $bg
+    }
+}
+
+# window title bars and borders
+# green gruvbox
+# class                 border|backgr|text|indicator|child_border
+client.focused          $green $green $darkgray $green $green
+client.focused_inactive $darkgray $darkgray $yellow $darkgray $darkgray
+client.unfocused        $darkgray $darkgray $yellow $darkgray $darkgray
+client.urgent           $red $red $white $red $red
+# blue gruvbox
+# class                 border|backgr|text|indicator|child_border
+# client.focused          $blue $blue $darkgray $purple $darkgray
+# client.focused_inactive $darkgray $darkgray $yellow $purple $darkgray
+# client.unfocused        $darkgray $darkgray $yellow $purple $darkgray
+# client.urgent           $red $red $white $red $red
+
+#######################################################################
+# i3-gaps stuff
+#######################################################################
+
+# Necessary for i3-gaps to work properly (pixel can be any value)
+for_window [class="^.*"] border pixel 1
+
+# Smart Gaps
+smart_gaps on
+
+# Smart Borders
+smart_borders on
+
+# Set inner/outer gaps
+gaps inner 14
+gaps outer 0
+
+# Gaps mode
+set $mode_gaps Gaps: (o)uter, (i)nner, (h)orizontal, (v)ertical, (t)op, (r)ight, (b)ottom, (l)eft
+set $mode_gaps_outer Outer Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_inner Inner Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_horiz Horizontal Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_verti Vertical Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_top Top Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_right Right Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_bottom Bottom Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_left Left Gaps: +|-|0 (local), Shift + +|-|0 (global)
+# bindsym $mod+Shift+g mode "$mode_gaps"
+
+mode "$mode_gaps" {
+        bindsym o      mode "$mode_gaps_outer"
+        bindsym i      mode "$mode_gaps_inner"
+        bindsym h      mode "$mode_gaps_horiz"
+        bindsym v      mode "$mode_gaps_verti"
+        bindsym t      mode "$mode_gaps_top"
+        bindsym r      mode "$mode_gaps_right"
+        bindsym b      mode "$mode_gaps_bottom"
+        bindsym l      mode "$mode_gaps_left"
+        bindsym Return mode "$mode_gaps"
         bindsym Escape mode "default"
 }
 
-bindsym $mod+r mode "resize"
+mode "$mode_gaps_outer" {
+        bindsym plus  gaps outer current plus 5
+        bindsym minus gaps outer current minus 5
+        bindsym 0     gaps outer current set 0
 
-# quick smaller window
-bindsym $mod+S resize shrink width 8 px or 8 ppt
-# bindsym $mod+Ctrl+Up resize grow height 10 px or 10 ppt
-# bindsym $mod+Ctrl+Down resize shrink height 10 px or 10 ppt
-# bindsym $mod+Ctrl+Left resize grow width 10 px or 10 ppt
+        bindsym Shift+plus  gaps outer all plus 5
+        bindsym Shift+minus gaps outer all minus 5
+        bindsym Shift+0     gaps outer all set 0
 
-# disable window focus being activated by mouse
-focus_follows_mouse no
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_inner" {
+        bindsym plus  gaps inner current plus 5
+        bindsym minus gaps inner current minus 5
+        bindsym 0     gaps inner current set 0
 
-# Start i3bar
-bar {
-        status_command i3blocks -c ~/.i3/i3blocks.conf
-        # tray_output primary
-        font pango:Source Code Pro, FontAwesome 12
-        colors {
-                background $base03
-                separator $base02
-                # workspace border background text
-                focused_workspace $green $green $base3
-                inactive_workspace $blue $blue $base1
-                urgent_workspace $orange $red $base3
-        }
+        bindsym Shift+plus  gaps inner all plus 5
+        bindsym Shift+minus gaps inner all minus 5
+        bindsym Shift+0     gaps inner all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_horiz" {
+        bindsym plus  gaps horizontal current plus 5
+        bindsym minus gaps horizontal current minus 5
+        bindsym 0     gaps horizontal current set 0
+
+        bindsym Shift+plus  gaps horizontal all plus 5
+        bindsym Shift+minus gaps horizontal all minus 5
+        bindsym Shift+0     gaps horizontal all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_verti" {
+        bindsym plus  gaps vertical current plus 5
+        bindsym minus gaps vertical current minus 5
+        bindsym 0     gaps vertical current set 0
+
+        bindsym Shift+plus  gaps vertical all plus 5
+        bindsym Shift+minus gaps vertical all minus 5
+        bindsym Shift+0     gaps vertical all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_top" {
+        bindsym plus  gaps top current plus 5
+        bindsym minus gaps top current minus 5
+        bindsym 0     gaps top current set 0
+
+        bindsym Shift+plus  gaps top all plus 5
+        bindsym Shift+minus gaps top all minus 5
+        bindsym Shift+0     gaps top all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_right" {
+        bindsym plus  gaps right current plus 5
+        bindsym minus gaps right current minus 5
+        bindsym 0     gaps right current set 0
+
+        bindsym Shift+plus  gaps right all plus 5
+        bindsym Shift+minus gaps right all minus 5
+        bindsym Shift+0     gaps right all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_bottom" {
+        bindsym plus  gaps bottom current plus 5
+        bindsym minus gaps bottom current minus 5
+        bindsym 0     gaps bottom current set 0
+
+        bindsym Shift+plus  gaps bottom all plus 5
+        bindsym Shift+minus gaps bottom all minus 5
+        bindsym Shift+0     gaps bottom all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_left" {
+        bindsym plus  gaps left current plus 5
+        bindsym minus gaps left current minus 5
+        bindsym 0     gaps left current set 0
+
+        bindsym Shift+plus  gaps left all plus 5
+        bindsym Shift+minus gaps left all minus 5
+        bindsym Shift+0     gaps left all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
 }
 
-# i3blocks caps lock and num lock detection
-bindsym --release Caps_Lock exec pkill -SIGRTMIN+11 i3blocks
-bindsym --release Num_Lock  exec pkill -SIGRTMIN+11 i3blocks
 
-# use i3lock-blur
-# bindsym $mod+Escape exec "i3lock-extra --screenshot --pixelize --pixelize-scale 5"
-bindsym $mod+l exec "~/.i3/i3lock-pixel.sh"
-
-
-################################################################################
-# MISC.
-################################################################################
-# disable pc speaker
-exec_always setterm -blength 0
-
-# volume keybindings
-# PC
-# bindsym $mod+greater exec "amixer -q sset Master,0 1000+ unmute"
-# bindsym $mod+less exec "amixer -q sset Master,0 1000- unmute"
-# Laptop
-# bindsym XF86AudioRaiseVolume exec "pactl set-sink-volume 0 +10%"
-# bindsym XF86AudioLowerVolume exec "pactl set-sink-volume 0 -10%"
-# bindsym XF86AudioMute exec "pactl set-sink-mute 0 toggle"
-
-# brightness keybindings
-# bindsym XF86MonBrightnessUp exec "xbacklight + 5"
-# bindsym XF86MonBrightnessDown exec "xbacklight - 5"
-
-# bindsym $mod+Shift+x exec xmodmap ~/.Xmodmap
-
-# temporary parlatype keybindings
-bindsym --release $hyper+a exec qdbus com.github.gkarsay.parlatype /com/github/gkarsay/parlatype com.github.gkarsay.parlatype.PlayPause
-bindsym --release $hyper+r exec qdbus com.github.gkarsay.parlatype /com/github/gkarsay/parlatype com.github.gkarsay.parlatype.JumpBack
-bindsym --release $hyper+s exec qdbus com.github.gkarsay.parlatype /com/github/gkarsay/parlatype com.github.gkarsay.parlatype.JumpForward
-
-exec_always setxkbmap us
-# see /usr/share/X11/xkb/symbols/
-exec_always test -f ~/.Xkeymap && xkbcomp ~/.Xkeymap $DISPLAY
-
-exec_always xrdb ~/.Xresources
+#######################################################################
+# Startup
+#######################################################################
+exec_always --no-startup-id feh --bg-scale ~/Dropbox/dotfiles/polygon_bg.png
+exec_always ~/.xprofile

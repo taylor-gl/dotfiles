@@ -1,0 +1,10 @@
+# key: $$hide2
+# name: org-drill hide2cloze question
+# expand-env: ((yas/indent-line (quote fixed)) (yas/wrap-around-region (quote nil)))
+# --
+$0
+`(concat (make-string (org-current-level) ?*) "*")` Question $1 :drill:
+:PROPERTIES:
+:DRILL_CARD_TYPE: hide2cloze
+:END:
+`(make-string (org-current-level) ?\s)`$2
