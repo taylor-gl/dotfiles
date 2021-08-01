@@ -1396,6 +1396,17 @@ If on a:
   ;; TODO disable auto paren insertion
   :config
   (require 'smartparens-config)
+  (sp-pair "\\\\(" "\\\\)" :actions '(wrap))
+  (sp-pair "\\{" "\\}" :actions '(wrap))
+  (sp-pair "\\(" "\\)" :actions '(wrap))
+  (sp-pair "\\\"" "\\\"" :actions '(wrap))
+  (sp-pair "/*" "*/" :actions '(wrap))
+  (sp-pair "\"" "\"" :actions '(wrap))
+  (sp-pair "'" "'" :actions '(wrap))
+  (sp-pair "(" ")" :actions '(wrap))
+  (sp-pair "[" "]" :actions '(wrap))
+  (sp-pair "{" "}" :actions '(wrap))
+  (sp-pair "`" "`" :actions '(wrap))
   )
 
 ;; setup ligatures and code mode settings
