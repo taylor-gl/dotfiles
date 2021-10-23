@@ -81,6 +81,8 @@ Defaults: taylor timestamp_timeout=-1
 emerge –ask dev-vcs/git
 git config --global user.name "Taylor G. Lunt"
 git config --global user.email taylor@taylor.gl
+git config --global log.abbrevCommit true
+git config --global format.pretty oneline
 ```
 
 ## Clone this dotfiles repo
@@ -98,6 +100,9 @@ ln -s ~/Dropbox/dotfiles/.i3blocks.conf ~/.i3blocks.conf
 ln -s ~/Dropbox/dotfiles/.gitconfig ~/.gitconfig
 ln -s ~/Dropbox/dotfiles/.scripts ~/.scripts
 ln -s ~/Dropbox/dotfiles/.alacritty.yml ~/.alacritty.yml
+ln -s ~/Dropbox/dotfiles/xorg.conf.d/40-libinput.conf /etc/X11/xorg.conf.d/40-libinput.conf
+ln -s ~/Dropbox/dotfiles/.ignore ~/.ignore
+ln -s ~/Dropbox/dotfiles/anki/ ~/.local/share/Anki2/addons21/679615590/user_files/
 ```
 
 ## GPG and SSH keys
@@ -113,19 +118,32 @@ When a package is masked, consider adding the package name to `/etc/portage/pack
 
 Install the following software (some software, like emacs, vivaldi, layman, or nvidia-drivers may have custom USE flags worth setting first in `/etc/portage/package.use/` directory):
 ```bash
-emerge --ask =app-editors/emacs-28.0.9999 app-admin/logrotate app-admin/sysstat app-arch/rpm app-misc/anki app-misc/colordiff app-misc/ddcutil app-misc/elasticsearch app-misc/screenfetch app-misc/sl app-misc/trash-cli app-office/libreoffice app-portage/eix app-portage/gentoolkit app-portage/layman app-text/evince app-text/tree dev-db/postgresql dev-db/postgis dev-lang/erlang dev-lang/elixir dev-python/keyring gnome-base/gnome-keyring lxde-base/lxappearance media-fonts/dejavu media-fonts/fontawesome media-gfx/feh media-gfx/gimp media-gfx/inkscape media-gfx/scrot media-gfx/xsane media-gfx/simple-scan media-sound/alsa-plugins media-sound/audacity media-sound/paprefs media-sound/pavucontrol media-sound/playerctl media-sound/pulseaudio net-im/discord net-libs/nodejs net-misc/dropbox net-p2p/qbittorrent net-print/cups sys-apps/lm-sensors sys-apps/lsd sys-apps/the_silver_searcher sys-fs/inotify_tools www-servers/nginx x11-apps/xkill x11-drivers/nvidia-drivers x11-misc/i3blocks x11-misc/rofi x11-misc/qt5ct x11-misc/xclip x11-terms/alacritty x11-themes/gtk-engines-murrine x11-wm/i3-gaps
+emerge --ask =app-editors/emacs-28.0.9999 app-admin/logrotate app-admin/sysstat app-arch/rpm app-eselect/eselect-repository app-misc/anki app-misc/colordiff app-misc/ddcutil app-misc/elasticsearch app-misc/screenfetch app-misc/sl app-misc/trash-cli app-office/libreoffice app-portage/eix app-portage/gentoolkit app-shells/bash-completion app-text/diffpdf app-text/evince app-text/tree dev-db/postgresql dev-db/postgis dev-lang/erlang dev-lang/elixir dev-lang/typescript dev-libs/libappindicator dev-python/keyring dev-python/pip dev-util/ctags games-action/minecraft-launcher games-board/cockatrice games-util/lutris gnome-base/gnome-keyring lxde-base/lxappearance media-fonts/dejavu media-fonts/fontawesome media-fonts/noto-emoji media-gfx/feh media-gfx/gimp media-gfx/inkscape media-gfx/scrot media-gfx/xsane media-gfx/simple-scan media-libs/vulkan-loader media-sound/alsa-plugins media-sound/audacity media-sound/paprefs media-sound/pavucontrol media-sound/playerctl media-sound/pulseaudio media-video/atomicparsley media-video/mpv media-video/obs-studio media-video/rtmpdump net-im/discord net-im/signal-desktop-bin net-libs/nodejs net-misc/dropbox net-misc/youtube-dl net-p2p/qbittorrent net-print/cups sys-apps/lm-sensors sys-apps/lsd sys-apps/the_silver_searcher sys-apps/flatpak sys-fs/inotify_tools virtual/wine www-client/firefox www-servers/nginx x11-apps/xinput x11-apps/xkill x11-drivers/nvidia-drivers x11-libs/libwnck x11-misc/i3blocks x11-misc/rofi x11-misc/qt5ct x11-misc/xclip x11-terms/alacritty x11-themes/gtk-engines-murrine x11-wm/i3-gaps
 
-npm install -g tldr
+eselect repository enable guru
+emaint sync -r guru
+emerge --ask app-text/tldr
 
-layman -a jorgicio
-layman -a guru
-layman -a steam-overlay
-layman -a wayland-desktop
+eselect repository enable steam-overlay
+emaint sync -r steam-overlay
+emerge --ask games-util/steam-launcher games-util/steam-meta
 
-emerge --sync
+eselect repository enable wayland-desktop
+emaint sync -r wayland-desktop
+emerge --ask x11-themes/bibata-cursor-theme
 
-emerge –ask =net-vpn/nordvpn-3.8.7 games-action/minecraft-launcher games-util/steam-launcher games-util/steam-meta x11-themes/bibata-cursor-theme
+eselect repository enable nordvpn
+emaint sync -r nordvpn
+emerge --ask net-vpn/nordvpn
+
+eselect repository add james-overlay git https://github.com/mjkalyan/james-overlay.git
+emaint sync -r james-overlay
+<!-- not currently using anything from james-overlay -->
+
 /usr/bin/steam
+
+flatpak --user install soundux
+flatpak override --user --filesystem=host io.github.Soundux
 ```
 
 Make some directories:
@@ -188,12 +206,32 @@ rc-update add dropbox default
 dropbox start
 ```
 
+## Setup fonts
+Download fonts and install to `.local/share/fonts`:
+- all-the-icons.ttf
+- [Fantasque Sans Mono Nerd Font](https://github.com/ryanoasis/nerd-fonts)
+- [Noto Sans](https://fonts.google.com/specimen/Noto+Sans)
+- [FontAwesome](https://fontawesome.com/) for use in i3
+- [WeatherIcons](http://erikflowers.github.io/weather-icons/) for the [weather i3block I use](http://erikflowers.github.io/weather-icons/)
+
+## Setup rofi theme
+```bash
+rofi-theme-selector
+```
+(Choose gruvbox-dark)
+
 ## Setup emacs
 ```bash
 ln -s ~/Dropbox/dotfiles/init.el ~/.emacs.d/init.el
+ln -s ~/Dropbox/dotfiles/bookmarks ~/.emacs.d/bookmarks
 ```
 Download [Fantasque Sans Mono Nerd Font](https://github.com/ryanoasis/nerd-fonts) and Noto Sans. (They go in `.local/share/fonts`.)
 Then run, in emacs, `all-the-icons-install-fonts`.
+
+```bash
+npm install --save-dev --global eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
+npm install --global --save-dev prettier
+```
 
 ## Configure Vivaldi
 Sign in to sync extensions and most settings. Vimium keybindings should be synced too, but if not, import them from `dotfiles/vimium-options.json`.
@@ -250,19 +288,6 @@ If cursor theme is not working, make sure the theme is `Bibata-Original-Amber` i
 ## Setup libreoffice
 ```
 Tools -> View -> Icon style -> Breeze (dark)
-```
-
-## Setup BetterDiscord
-`cd ~/.build`, then follow the manual instructions on the [BetterDiscord Github](https://github.com/bb010g/betterdiscordctl#betterdiscordctl).
-
-To upgrade `betterdiscordctl`:
-```bash
-betterdiscordctl self-upgrade
-```
-
-To install BetterDiscord:
-```bash
-betterdiscordctl install
 ```
 
 ## Setup postgresql

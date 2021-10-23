@@ -26,7 +26,6 @@
 ;; TODO: Haskell
 ;; TODO: Java
 ;; TODO: Markdown
-;; TODO: Python: use Black for formatting
 ;; TODO: Rust
 ;; INPROGRESS: SQL
 ;; INPROGRESS: Latex; Latex org integration
@@ -80,7 +79,9 @@
 (global-set-key (kbd "<escape>") #'keyboard-escape-quit)
 
 ;; Scrolling
-(setq mouse-wheel-scroll-amount '(2 ((control) . 5))) ;; two lines at a time unless control held
+;; TODO control scrolling currently affects zoom
+(setq mouse-wheel-scroll-amount '(3 ((control) . 6))) ;; two lines at a time unless control held
+(setq mouse-wheel-progressive-speed nil) ;; no scroll acceleration, because who would want that?
 
 ;; Do not force files to end with a newline
 (setq require-final-newline nil)
@@ -91,7 +92,7 @@
 (setq backup-directory-alist
       `(("." . ,"~/.emacs.d/backups")))
 (setq auto-save-file-name-transforms
-          `((".*" ,(concat user-emacs-directory "auto-save-list/") t)))
+      `((".*" ,(concat user-emacs-directory "auto-save-list/") t)))
 
 ;; Don't ask me for confirmation when closing buffers with running processes etc.
 (setq kill-buffer-query-functions nil)
@@ -138,7 +139,7 @@
 ;; Use like this in use-package blocks to define mode-specific keybindings under <localleader> (SPC m):
 ;; :init
 ;; (taylor-gl/localleader-def-create! org-mode-map
-    ;; "SPC" 'save-buffer)
+;; "SPC" 'save-buffer)
 (defmacro taylor-gl/localleader-def-create! (keymap &rest body)
   "Create a definer named taylor-gl/localleader-def-KEYMAP in the global SPC m <localleader> menu."
   (declare (indent 2))
@@ -152,134 +153,136 @@
       ,@body)))
 
 (use-package general
-    :demand
-    :config
-    (general-evil-setup t)
-    (general-create-definer taylor-gl/leader-def
-        :states '(normal insert visual emacs)
-        :keymaps 'override
-        :prefix "SPC"
-        :global-prefix "C-SPC"
-        "" '(:ignore t :which-key "<leader>"))
-    ;; many of these come from doom emacs
-    (taylor-gl/leader-def
-        "SPC" #'save-buffer
-        "RET" #'counsel-bookmark
-        "TAB" #'(lambda (&optional arg) (interactive "P")(org-agenda-list arg)) ;; open agenda for next month
-        "/" #'comment-line
-        ":" #'counsel-M-x
-        ";" #'pp-eval-expression
-        "b" #'(:ignore t :which-key "buffer")
-        "b b" #'(counsel-switch-buffer :which-key "switch buffers")
-        "b d" #'(kill-current-buffer :which-key "kill this buffer")
-        "b D" #'(kill-buffer :which-key "kill a buffer")
-        "b k" #'(crux-kill-other-buffers :which-key "kill all other buffers")
-        "b n" #'(next-buffer :which-key "next buffer")
-        "b p" #'(crux-switch-to-previous-buffer :which-key "previous buffer")
-        "b m" #'(bookmark-set :which-key "bookmark")
-        "b M" #'(bookmark-delete :which-key "remove bookmark")
-        "b z" #'(hydra-zoom/body :which-key "zoom")
-        "e" #'(:ignore t :which-key "edit")
-        "e y" #'(flycheck-copy-errors-as-kill :which-key "yank error")
-        "e f" #'(flycheck-list-errors :which-key "flycheck buffer")
-        "e n" #'(flycheck-next-error :which-key "next error")
-        "e p" #'(flycheck-list-errors :which-key "previous error")
-        "e v" #'(flycheck-verify-setup :which-key "verify flycheck checker")
-        "f" #'(:ignore t :which-key "file")
-        "f i" #'(crux-find-user-init-file :which-key "find init.el")
-        "f d" #'(dired-jump :which-key "dir of this file")
-        "f f" #'(counsel-find-file :which-key "find file")
-        "f l" #'(counsel-locate :which-key "locate file")
-        "f r" #'(counsel-recentf :which-key "recent file")
-        "f SPC" #'(write-file :which-key "save file as...")
-        "g" #'(:ignore t :which-key "git")
-        "g B" #'(magit-blame-addition :which-key "blame")
-        "g d" #'(magit-diff-buffer-file :which-key "diff this file")
-        "g g" #'(magit-status :which-key "status")
-        "g G" #'(magit-status-here :which-key "status here")
-        "g e" #'(git-gutter:previous-hunk :which-key "previous hunk")
-        "g h" #'(git-gutter:mark-hunk :which-key "select hunk")
-        "g n" #'(git-gutter:next-hunk :which-key "next hunk")
-        "g r" #'(git-gutter:revert-hunk :whick-key "revert hunk")
-        "g s" #'(git-gutter:stage-hunk :whick-key "stage hunk")
-        "g t" #'(magit-todos-list :whick-key "list repo todos")
-        ;; replaced by bookmarking todo.org
-        ;; TODO: fix this so it works again
-        ;; "t" #'((lambda () (interactive)(counsel-find-file "~/Dropbox/emacs/todo.org")) :which-key "todo.org")
-        "h" #'(:ignore t :which-key "help")
-        "h b" #'(describe-personal-keybindings :which-key "describe personal keybindings")
-        "h c" #'(describe-char :which-key "describe char")
-        "h e" #'(view-echo-area-messages :which-key "show echo")
-        "h f" #'(helpful-function :which-key "describe function")
-        "h k" #'(describe-key-briefly :which-key "describe key")
-        "h K" #'(helpful-key :which-key "describe key in depth")
-        "h m" #'(describe-mode :which-key "describe modes")
-        "h M" #'(+default/man-or-woman :which-key "man page")
-        "h v" #'(helpful-variable :which-key "describe variable")
-        "i" #'(:ignore t :which-key "insert")
-        "i d" #'(crux-insert-date :which-key "insert date")
-        "i e" #'(yas-visit-snippet-file :which-key "edit snippet")
-        "i n" #'(yas-new-snippet :which-key "new snippet")
-        "i s" #'(yas-insert-snippet :which-key "insert snippet")
-        "i x" #'(crux-delete-buffer-and-file :which-key "delete current buffer file")
-        "m" #'(:ignore t :which-key "<localleader>")
-        "p" '(:keymap projectile-command-map :package projectile :which-key "project")
-        "u" #'(:ignore t :which-key "undo")
-        "u l" #'(undo-tree-undo :which-key "undo (last)")
-        "u r" #'(undo-tree-redo :which-key "redo")
-        "u u" #'(undo-tree-visualize :which-key "view tree")
-        "q" #'(:ignore t :which-key "quit")
-        "q e" #'(save-buffers-kill-emacs :which-key "quit emacs")
-        "q E" #'(evil-quit-all-with-error-code :which-key "quit emacs without saving")
-        "q q" #'(save-buffers-kill-terminal :which-key "quit frame")
-        "r" #'(:ignore t :which-key "roam")
-        "r d" #'(org-roam-buffer-toggle-display :which-key "roam display")
-        "r b" #'(helm-bibtex :which-key "view bibliography")
-        "r c" #'(org-roam-capture :which-key "capture note")
-        "r f" #'(org-roam-find-file :which-key "find roam note")
-        "r g" #'(org-roam-graph :which-key "graph")
-        "r i" #'(org-roam-insert :which-key "insert note citation")
-        "r l" #'(org-ref-insert-link :which-key "insert link to reference")
-        "r p" #'(org-mark-ring-goto :which-key "previous note")
-        "r r" #'(org-roam-buffer-toggle-display :which-key "start roam")
-        "r t" #'(org-roam-tag-add :which-key "add tag")
-        "r T" #'(org-roam-tag-delete :which-key "delete tag")
-        "r u" #'(org-roam-update :which-key "update roam now")
-        "r x" #'(crux-delete-buffer-and-file :which-key "delete this note")
-        "s" #'(:ignore t :which-key "search")
-        "s f" #'(counsel-locate :which-key "file locate")
-        "s i" #'(counsel-imenu :which-key "imenu (find symbol)")
-        "s n" #'(hl-todo-next :which-key "next hl-todo symbol")
-        "s p" #'(hl-todo-previous :which-key "previous hl-todo symbol")
-        "s r" #'(counsel-mark-ring :which-key "mark ring")
-        "s t" #'(swiper-isearch-thing-at-point :which-key "thing at point")
-        "w" #'(:ignore t :which-key "window")
-        "w +" #'(evil-window-increase-height :which-key "increase height")
-        "w -" #'(evil-window-decrease-height :which-key "decrease height")
-        "w >" #'(evil-window-increase-width :which-key "increase width")
-        "w <" #'(evil-window-decrease-width :which-key "decrease width")
-        "w =" #'(balance-windows :which-key "balance windows")
-        "w d" #'(evil-window-delete :which-key "delete")
-        "w h" #'(evil-window-left :which-key "left")
-        "w n" #'(evil-window-down :which-key "down")
-        "w e" #'(evil-window-up :which-key "up")
-        "w i" #'(evil-window-right :which-key "right")
-        "w n" #'(evil-window-next :which-key "next")
-        "w p" #'(evil-window-mru :which-key "previous")
-        "w s" #'(evil-window-split :which-key "split above/below")
-        "w v" #'(evil-window-vsplit :which-key "split left/right")
-        "w H" #'(+evil/window-move-left :which-key "left")
-        "w N" #'(+evil/window-move-down :which-key "down")
-        "w E" #'(+evil/window-move-up :which-key "up")
-        "w I" #'(+evil/window-move-right :which-key "right")
-        "x" #'(:ignore t :which-key "regex")
-        "x c" #'(how-many :which-key "count occurences")
-        "x f" #'(flush-lines :which-key "flush lines")
-        "x h" #'(highlight-regexp :which-key "highlight")
-        "x k" #'(keep-lines :which-key "keep lines")
-        "x r" #'(query-replace :which-key "replace")
-        "x R" #'(query-replace-regexp :which-key "replace regex")
-        ))
+  :demand
+  :config
+  (general-evil-setup t)
+  (general-create-definer taylor-gl/leader-def
+    :states '(normal insert visual emacs)
+    :keymaps 'override
+    :prefix "SPC"
+    :global-prefix "C-SPC"
+    "" '(:ignore t :which-key "<leader>"))
+  ;; many of these come from doom emacs
+  (taylor-gl/leader-def
+    "SPC" #'save-buffer
+    "RET" #'counsel-bookmark
+    "TAB" #'(lambda (&optional arg) (interactive "P")(org-agenda-list arg)) ;; open agenda for next month
+    "/" #'comment-line
+    ":" #'counsel-M-x
+    ";" #'pp-eval-expression
+    "=" #'format-all-buffer
+    "b" #'(:ignore t :which-key "buffer")
+    "b b" #'(counsel-switch-buffer :which-key "switch buffers")
+    "b d" #'(kill-current-buffer :which-key "kill this buffer")
+    "b D" #'(kill-buffer :which-key "kill a buffer")
+    "b k" #'(crux-kill-other-buffers :which-key "kill all other buffers")
+    "b n" #'(next-buffer :which-key "next buffer")
+    "b p" #'(crux-switch-to-previous-buffer :which-key "previous buffer")
+    "b m" #'(bookmark-set :which-key "bookmark")
+    "b M" #'(bookmark-delete :which-key "remove bookmark")
+    "b z" #'(hydra-zoom/body :which-key "zoom")
+    "e" #'(:ignore t :which-key "edit")
+    "e y" #'(flycheck-copy-errors-as-kill :which-key "yank error")
+    "e n" #'(flycheck-next-error :which-key "next error")
+    "e p" #'(flycheck-previous-error :which-key "previous error")
+    "e l" #'(flycheck-list-errors :which-key "list errors")
+    "e v" #'(flycheck-verify-setup :which-key "verify flycheck checker")
+    "f" #'(:ignore t :which-key "file")
+    "f i" #'(crux-find-user-init-file :which-key "find init.el")
+    "f d" #'(dired-jump :which-key "dir of this file")
+    "f f" #'(counsel-find-file :which-key "find file")
+    "f l" #'(counsel-locate :which-key "locate file")
+    "f r" #'(counsel-recentf :which-key "recent file")
+    "f SPC" #'(write-file :which-key "save file as...")
+    "g" #'(:ignore t :which-key "git")
+    "g B" #'(magit-blame-addition :which-key "blame")
+    "g d" #'(magit-diff-buffer-file :which-key "diff this file")
+    "g g" #'(magit-status :which-key "status")
+    "g G" #'(magit-status-here :which-key "status here")
+    "g e" #'(git-gutter:previous-hunk :which-key "previous hunk")
+    "g h" #'(git-gutter:mark-hunk :which-key "select hunk")
+    "g n" #'(git-gutter:next-hunk :which-key "next hunk")
+    "g r" #'(git-gutter:revert-hunk :whick-key "revert hunk")
+    "g s" #'(git-gutter:stage-hunk :whick-key "stage hunk")
+    "g t" #'(magit-todos-list :whick-key "list repo todos")
+    ;; replaced by bookmarking todo.org
+    ;; TODO: fix this so it works again
+    ;; "t" #'((lambda () (interactive)(counsel-find-file "~/Dropbox/emacs/todo.org")) :which-key "todo.org")
+    "h" #'(:ignore t :which-key "help")
+    "h b" #'(describe-personal-keybindings :which-key "describe personal keybindings")
+    "h c" #'(describe-char :which-key "describe char")
+    "h e" #'(view-echo-area-messages :which-key "show echo")
+    "h f" #'(helpful-function :which-key "describe function")
+    "h k" #'(describe-key-briefly :which-key "describe key")
+    "h K" #'(helpful-key :which-key "describe key in depth")
+    "h m" #'(describe-mode :which-key "describe modes")
+    "h M" #'(+default/man-or-woman :which-key "man page")
+    "h r" #'(info-emacs-manual :which-key "emacs info pages")
+    "h v" #'(helpful-variable :which-key "describe variable")
+    "i" #'(:ignore t :which-key "insert")
+    "i d" #'(crux-insert-date :which-key "insert date")
+    "i e" #'(yas-visit-snippet-file :which-key "edit snippet")
+    "i n" #'(yas-new-snippet :which-key "new snippet")
+    "i s" #'(yas-insert-snippet :which-key "insert snippet")
+    "i x" #'(crux-delete-buffer-and-file :which-key "delete current buffer file")
+    "m" #'(:ignore t :which-key "<localleader>")
+    "p" '(:keymap projectile-command-map :package projectile :which-key "project")
+    "u" #'(:ignore t :which-key "undo")
+    "u l" #'(undo-tree-undo :which-key "undo (last)")
+    "u r" #'(undo-tree-redo :which-key "redo")
+    "u u" #'(undo-tree-visualize :which-key "view tree")
+    "q" #'(:ignore t :which-key "quit")
+    "q e" #'(save-buffers-kill-emacs :which-key "quit emacs")
+    "q E" #'(evil-quit-all-with-error-code :which-key "quit emacs without saving")
+    "q q" #'(save-buffers-kill-terminal :which-key "quit frame")
+    "r" #'(:ignore t :which-key "roam")
+    "r d" #'(org-roam-buffer-toggle-display :which-key "roam display")
+    "r b" #'(helm-bibtex :which-key "view bibliography")
+    "r c" #'(org-roam-capture :which-key "capture note")
+    "r f" #'(org-roam-find-file :which-key "find roam note")
+    "r g" #'(org-roam-graph :which-key "graph")
+    "r i" #'(org-roam-insert :which-key "insert note citation")
+    "r l" #'(org-ref-insert-link :which-key "insert link to reference")
+    "r p" #'(org-mark-ring-goto :which-key "previous note")
+    "r r" #'(org-roam-buffer-toggle-display :which-key "start roam")
+    "r t" #'(org-roam-tag-add :which-key "add tag")
+    "r T" #'(org-roam-tag-delete :which-key "delete tag")
+    "r u" #'(org-roam-update :which-key "update roam now")
+    "r x" #'(crux-delete-buffer-and-file :which-key "delete this note")
+    "s" #'(:ignore t :which-key "search")
+    "s f" #'(counsel-locate :which-key "file locate")
+    "s i" #'(counsel-imenu :which-key "imenu (find symbol)")
+    "s n" #'(hl-todo-next :which-key "next hl-todo symbol")
+    "s p" #'(hl-todo-previous :which-key "previous hl-todo symbol")
+    "s r" #'(counsel-mark-ring :which-key "mark ring")
+    "s t" #'(swiper-isearch-thing-at-point :which-key "thing at point")
+    "w" #'(:ignore t :which-key "window")
+    "w +" #'(evil-window-increase-height :which-key "increase height")
+    "w -" #'(evil-window-decrease-height :which-key "decrease height")
+    "w >" #'(evil-window-increase-width :which-key "increase width")
+    "w <" #'(evil-window-decrease-width :which-key "decrease width")
+    "w =" #'(balance-windows :which-key "balance windows")
+    "w d" #'(evil-window-delete :which-key "delete")
+    "w h" #'(evil-window-left :which-key "left")
+    "w n" #'(evil-window-down :which-key "down")
+    "w e" #'(evil-window-up :which-key "up")
+    "w i" #'(evil-window-right :which-key "right")
+    "w n" #'(evil-window-next :which-key "next")
+    "w p" #'(evil-window-mru :which-key "previous")
+    "w s" #'(evil-window-split :which-key "split above/below")
+    "w v" #'(evil-window-vsplit :which-key "split left/right")
+    "w H" #'(+evil/window-move-left :which-key "left")
+    "w N" #'(+evil/window-move-down :which-key "down")
+    "w E" #'(+evil/window-move-up :which-key "up")
+    "w I" #'(+evil/window-move-right :which-key "right")
+    "x" #'(:ignore t :which-key "regex")
+    "x c" #'(how-many :which-key "count occurences")
+    "x f" #'(flush-lines :which-key "flush lines")
+    "x h" #'(highlight-regexp :which-key "highlight")
+    "x k" #'(keep-lines :which-key "keep lines")
+    "x r" #'(query-replace :which-key "replace")
+    "x R" #'(query-replace-regexp :which-key "replace regex")
+    ))
 
 ;; Setup which-key -- shows a menu of which keybindings are available
 (use-package which-key
@@ -289,12 +292,12 @@
   ;; TODO: get these keybindings working
   ;; :general
   ;; (:keymaps 'which-key-C-h-map
-	    ;; "j" nil
-	    ;; "k" nil
-	    ;; "n" which-key-show-next-page-cycle
-	    ;; "e" which-key-show-previous-page-cycle
-	    ;; "l" which-key-undo-key
-	    ;; "C-l" which-key-undo-key)
+	;; "j" nil
+	;; "k" nil
+	;; "n" which-key-show-next-page-cycle
+	;; "e" which-key-show-previous-page-cycle
+	;; "l" which-key-undo-key
+	;; "C-l" which-key-undo-key)
   :diminish
   :custom ;; must use :custom, not :config
   (which-key-allow-evil-operators t)
@@ -317,8 +320,8 @@
   :demand t
   :general
   (:states 'normal
-	   "go" #'crux-smart-open-line
-	   "gO" #'crux-smart-open-line-above)
+	         "go" #'crux-smart-open-line
+	         "gO" #'crux-smart-open-line-above)
   :config
   (crux-reopen-as-root-mode t))
 
@@ -327,12 +330,12 @@
   :demand
   :general
   (:keymaps undo-tree-visualizer-mode-map
-	    "e" #'undo-tree-visualize-undo
-	    "n" #'undo-tree-visualize-redo
-	    "h" #'undo-tree-visualize-switch-branch-left
-	    "i" #'undo-tree-visualize-switch-branch-right
-	    "C-e" #'undo-tree-visualize-undo-to-x
-	    "C-n" #'undo-tree-visualize-redo-to-x)
+	          "e" #'undo-tree-visualize-undo
+	          "n" #'undo-tree-visualize-redo
+	          "h" #'undo-tree-visualize-switch-branch-left
+	          "i" #'undo-tree-visualize-switch-branch-right
+	          "C-e" #'undo-tree-visualize-undo-to-x
+	          "C-n" #'undo-tree-visualize-redo-to-x)
   :init
   (setq undo-tree-enable-undo-in-region)
   :config
@@ -385,11 +388,11 @@
 
 ;; Setup ivy-rich
 (use-package ivy-rich
-    :diminish
-    :demand
-    :config
-    (ivy-rich-mode 1)
-    (setq ivy-rich-path-style 'abbrev))
+  :diminish
+  :demand
+  :config
+  (ivy-rich-mode 1)
+  (setq ivy-rich-path-style 'abbrev))
 
 ;; Setup helpful -- better help menus
 (use-package helpful
@@ -414,27 +417,27 @@
 (use-package all-the-icons)
 
 (use-package all-the-icons-dired
-    :ghook #'dired-mode-hook)
+  :ghook #'dired-mode-hook)
 
 ;; Setup doom-themes
 (use-package doom-themes
-    :demand
-    :custom-face
-    ;; change ugly org-level-1 etc. color choices
-    (outline-1 ((t (:foreground "#fadb2f")))) ;; only bold level 1 face
-    (outline-2 ((t (:foreground "#8ec07c"))))
-    (outline-3 ((t (:foreground "#a2bbb1"))))
-    (outline-4 ((t (:foreground "#8ec07c"))))
-    (outline-5 ((t (:foreground "#a2bbb1"))))
-    (outline-6 ((t (:foreground "#8ec07c"))))
-    (outline-7 ((t (:foreground "#a2bbb1"))))
-    (outline-8 ((t (:foreground "#8ec07c"))))
-    :config
-    (setq doom-themes-enable-bold t)
-    (setq doom-themes-enable-italic t)
-    (load-theme 'doom-gruvbox t)
-    (doom-themes-visual-bell-config)
-    (doom-themes-org-config))
+  :demand
+  :custom-face
+  ;; change ugly org-level-1 etc. color choices
+  (outline-1 ((t (:foreground "#fadb2f")))) ;; only bold level 1 face
+  (outline-2 ((t (:foreground "#8ec07c"))))
+  (outline-3 ((t (:foreground "#a2bbb1"))))
+  (outline-4 ((t (:foreground "#8ec07c"))))
+  (outline-5 ((t (:foreground "#a2bbb1"))))
+  (outline-6 ((t (:foreground "#8ec07c"))))
+  (outline-7 ((t (:foreground "#a2bbb1"))))
+  (outline-8 ((t (:foreground "#8ec07c"))))
+  :config
+  (setq doom-themes-enable-bold t)
+  (setq doom-themes-enable-italic t)
+  (load-theme 'doom-gruvbox t)
+  (doom-themes-visual-bell-config)
+  (doom-themes-org-config))
 
 ;; Setup whitespace (to visualize trailing whitespace etc.)
 (use-package whitespace
@@ -446,7 +449,7 @@
 
 ;; Setup rainbow-delimiters
 (use-package rainbow-delimiters
-    :ghook 'prog-mode-hook)
+  :ghook 'prog-mode-hook)
 
 ;; Setup evil-goggles (highlights evil motions)
 (use-package evil-goggles
@@ -503,8 +506,8 @@
                                                 ("||" . ?∨)
                                                 ("<=" . ?≤)
                                                 (">=" . ?≥)
-                                                ("<<" . ?≪)
-                                                (">>" . ?≫)
+                                                ;; ("<<" . ?≪)
+                                                ;; (">>" . ?≫)
                                                 ("/=" . ?≠)
                                                 ("!=" . ?≠)
                                                 ("~>" . ?⇝)
@@ -558,7 +561,7 @@
 (use-package shackle
   :demand
   :init
-  (setq shackle-rules '((("^\\*\\(?:[Cc]ompil\\(?:ation\\|e-Log\\)\\|Messages\\)" "^\\*info\\*$" "\\`\\*magit-diff: .*?\\'" grep-mode "*ag search*" "*Flycheck errors*") :regexp t :align below :noselect t :size 0.3)
+  (setq shackle-rules '((("^\\*\\(?:[Cc]ompil\\(?:ation\\|e-Log\\)\\|Messages\\)" "^\\*info\\*$" "\\`\\*magit-diff: .*?\\'" grep-mode "*Flycheck errors*") :regexp t :align below :noselect t :size 0.3)
                         ("^\\*\\(?:Wo\\)?Man " :regexp t :align right :select t)
                         ("^\\*Calc" :regexp t :align below :select t :size 0.3)
                         ("^\\*Alchemist" :regexp t :align below :select t :size 0.3 :same nil)
@@ -566,9 +569,10 @@
                         (("^\\*Warnings" "^\\*Warnings" "^\\*CPU-Profiler-Report " "^\\*Memory-Profiler-Report " "^\\*Process List\\*" "*Error*") :regexp t :align below :noselect t :size 0.2)
                         ("^\\*\\(?:Proced\\|timer-list\\|Abbrevs\\|Output\\|Occur\\|unsent mail\\)\\*" :regexp t :ignore t)
                         (("*shell*" "*eshell*") :popup t :select t)
+                        ("*ag search*" :regexp t :popup t :select t :align below :size 0.3)
                         ("^ \\*undo-tree\\*" :regexp t :other t :align right :select t :size 0.2)
                         ("^\\*\\([Hh]elp\\|Apropos\\)" :regexp t :align right :select t)
-                        ("\\`\\*magit.*?\\*\\'" :regexp t :align t :size 0.4)
+                        ("\\`\\*magit.*?\\*\\'" :regexp t :align t :size 0.4 :inhibit-window-quit t)
                         ))
   (setq shackle-default-rule '(:select t :same t)) ;; reuse current window for new buffers by default
   (setq shackle-default-size 0.4)
@@ -618,44 +622,44 @@
   ;; Reimplementing some of the colemak evil rebindings from here https://github.com/wbolster/evil-colemak-basics
   ;; I do use the t-f-j rotation
   (:states '(motion normal visual)
-	   "e" #'evil-previous-visual-line
-	   "ge" #'evil-previous-visual-line
-	   "E" #'evil-lookup
-	   "f" #'evil-forward-word-end
-	   "F" #'evil-forward-WORD-end
-	   "gf" #'evil-backward-word-end
-	   "gF" #'evil-backward-WORD-end
-	   "gt" #'find-file-at-point
-	   "gT" #'evil-find-file-at-point-with-line
-	   "i" #'evil-forward-char
-	   "gj" #'evil-backward-word-end
-	   "gJ" #'evil-backward-WORD-end
-	   "k" #'evil-search-next
-	   "K" #'evil-search-previous
-	   "gk" #'evil-next-match
-	   "gK" #'evil-previous-match
-	   "n" #'evil-next-visual-line
-	   "gn" #'evil-next-visual-line
-	   "gN" #'evil-next-visual-line
-	   "zi" #'evil-scroll-column-right
-	   "zI" #'evil-scroll-right)
+	         "e" #'evil-previous-visual-line
+	         "ge" #'evil-previous-visual-line
+	         "E" #'evil-lookup
+	         "f" #'evil-forward-word-end
+	         "F" #'evil-forward-WORD-end
+	         "gf" #'evil-backward-word-end
+	         "gF" #'evil-backward-WORD-end
+	         "gt" #'find-file-at-point
+	         "gT" #'evil-find-file-at-point-with-line
+	         "i" #'evil-forward-char
+	         "gj" #'evil-backward-word-end
+	         "gJ" #'evil-backward-WORD-end
+	         "k" #'evil-search-next
+	         "K" #'evil-search-previous
+	         "gk" #'evil-next-match
+	         "gK" #'evil-previous-match
+	         "n" #'evil-next-visual-line
+	         "gn" #'evil-next-visual-line
+	         "gN" #'evil-next-visual-line
+	         "zi" #'evil-scroll-column-right
+	         "zI" #'evil-scroll-right)
   (:states '(normal visual)
-	   "l" #'undo-tree-undo
-	   "C-r" #'undo-tree-redo
-	   "N" #'evil-join
-	   "gN" #'evil-join-whitespace)
+	         "l" #'undo-tree-undo
+	         "C-r" #'undo-tree-redo
+	         "N" #'evil-join
+	         "gN" #'evil-join-whitespace)
   (:states 'normal
-	   "u" #'evil-insert
-	   "U" #'evil-insert-line)
+	         "u" #'evil-insert
+	         "U" #'evil-insert-line)
   (:states 'visual
-	   "U" #'evil-insert)
+	         "U" #'evil-insert)
   (:states '(motion operator)
-	   "e" #'evil-previous-line
-	   "n" #'evil-next-line)
+	         "e" #'evil-previous-line
+	         "n" #'evil-next-line)
   (:states '(visual operator)
-	   "u" evil-inner-text-objects-map)
+	         "u" evil-inner-text-objects-map)
   (:states 'operator
-	   "i" #'evil-forward-char)
+	         "i" #'evil-forward-char)
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
@@ -671,37 +675,44 @@
 
 ;; Setup evil-collection -- evil keybindings for many modes
 (defun taylor-gl/colemak-translation (_mode mode-keymaps &rest _rest)
-      (evil-collection-translate-key 'normal mode-keymaps
-        ;; colemak hnei is qwerty hjkl
-        "n" "j"
-        "e" "k"
-        "i" "l"
-        ;; add back nei
-        ;; "j" "e"
-        ;; "k" "n"
-        ;; "l" "i"
-        ;; other evil-colemak-basics stuff -- ignore for now
-        ;; "k" "n"
-        ;; "K" "N"
-        ;; "u" "i"
-        ;; "U" "I"
-        ;; "l" "u"
-        ;; "N" "J"
-        ;; "E" "K"
-        ;; "f" "e"
-        ;; "F" "E"
-        ;; "t" "f"
-        ;; "T" "F"
-        ;; "j" "t"
-        ;; "J" "T"
-        ))
+  (evil-collection-translate-key 'normal mode-keymaps
+    ;; colemak hnei is qwerty hjkl
+    "n" "j"
+    "e" "k"
+    "i" "l"
+    ;; add back nei
+    ;; "j" "e"
+    ;; "k" "n"
+    ;; "l" "i"
+    ;; other evil-colemak-basics stuff -- ignore for now
+    ;; "k" "n"
+    ;; "K" "N"
+    ;; "u" "i"
+    ;; "U" "I"
+    ;; "l" "u"
+    ;; "N" "J"
+    ;; "E" "K"
+    ;; "f" "e"
+    ;; "F" "E"
+    ;; "t" "f"
+    ;; "T" "F"
+    ;; "j" "t"
+    ;; "J" "T"
+    ))
 (use-package evil-collection
   ;; check evil-collection-mode-list; remove magit and do manually
   :after evil general
   :ghook ('evil-collection-setup-hook #'taylor-gl/colemak-translation)
   :demand
+  :general
+  ;; TODO unbind RET, n, e from the evil mode maps when in Info-mode
+  (:keymaps 'Info-mode-map
+            "n" #'Info-next-reference
+            "e" #'Info-prev-reference)
+  :init
   :config
-  (evil-collection-init))
+  (evil-collection-init)
+  )
 
 ;; Setup evil-snipe
 ;; evil-surround uses the s/S keybinding in visual/operator modes,
@@ -711,13 +722,13 @@
   :demand t
   :general
   (:states '(motion normal visual operator)
-	  "j" #'evil-snipe-j
-	  "J" #'evil-snipe-J
-	  ;; "s" 'evil-snipe-s -- is set by evil-snipe-mode below
-	  ;; "S" 'evil-snipe-S -- is set by evil-snipe-mode below
-	  "t" #'evil-snipe-t
-	  "T" #'evil-snipe-T
-	   )
+	         "j" #'evil-snipe-j
+	         "J" #'evil-snipe-J
+	         ;; "s" 'evil-snipe-s -- is set by evil-snipe-mode below
+	         ;; "S" 'evil-snipe-S -- is set by evil-snipe-mode below
+	         "t" #'evil-snipe-t
+	         "T" #'evil-snipe-T
+	         )
   :config
   (evil-snipe-mode t)
   ;; evil-snipe-def used because of https://github.com/hlissner/evil-snipe/issues/46
@@ -733,8 +744,8 @@
   :after evil
   :general
   (:keymaps 'evil-normal-state-map
-         "g =" #'evil-numbers/inc-at-pt
-         "g -" #'evil-numbers/dec-at-pt)
+            "g =" #'evil-numbers/inc-at-pt
+            "g -" #'evil-numbers/dec-at-pt)
   )
 
 ;; Setup evil-surround
@@ -767,6 +778,55 @@
           (avy-goto-word-0 . avy-order-closest)))
   )
 
+(defun +evil--window-swap (direction)
+  "Move current window to the next window in DIRECTION.
+If there are no windows there and there is only one window, split in that
+direction and place this window there. If there are no windows and this isn't
+the only window, use evil-window-move-* (e.g. `evil-window-move-far-left')."
+  (when (window-dedicated-p)
+    (user-error "Cannot swap a dedicated window"))
+  (let* ((this-window (selected-window))
+         (this-buffer (current-buffer))
+         (that-window (windmove-find-other-window direction nil this-window))
+         (that-buffer (window-buffer that-window)))
+    (when (or (minibufferp that-buffer)
+              (window-dedicated-p this-window))
+      (setq that-buffer nil that-window nil))
+    (if (not (or that-window (one-window-p t)))
+        (funcall (pcase direction
+                   ('left  #'evil-window-move-far-left)
+                   ('right #'evil-window-move-far-right)
+                   ('up    #'evil-window-move-very-top)
+                   ('down  #'evil-window-move-very-bottom)))
+      (unless that-window
+        (setq that-window
+              (split-window this-window nil
+                            (pcase direction
+                              ('up 'above)
+                              ('down 'below)
+                              (_ direction))))
+        (with-selected-window that-window
+          (switch-to-buffer (doom-fallback-buffer)))
+        (setq that-buffer (window-buffer that-window)))
+      (with-selected-window this-window
+        (switch-to-buffer that-buffer))
+      (with-selected-window that-window
+        (switch-to-buffer this-buffer))
+      (select-window that-window))))
+
+(defun +evil/window-move-left ()
+  "Swap windows to the left."
+  (interactive) (+evil--window-swap 'left))
+(defun +evil/window-move-right ()
+  "Swap windows to the right"
+  (interactive) (+evil--window-swap 'right))
+(defun +evil/window-move-up ()
+  "Swap windows upward."
+  (interactive) (+evil--window-swap 'up))
+(defun +evil/window-move-down ()
+  "Swap windows downward."
+  (interactive) (+evil--window-swap 'down))
+
 ;; =============================================================================
 ;; ORG
 ;; =============================================================================
@@ -775,38 +835,38 @@
   :mode ("\\.org\\'" . org-mode)
   :general
   (:keymaps 'org-read-date-minibuffer-local-map
-         "C-h" (lambda () (interactive) (org-eval-in-calendar '(calendar-backward-day 1)))
-         "C-n" (lambda () (interactive) (org-eval-in-calendar '(calendar-forward-week 1)))
-         "C-e" (lambda () (interactive) (org-eval-in-calendar '(calendar-backward-week 1)))
-         "C-i" (lambda () (interactive) (org-eval-in-calendar '(calendar-forward-day 1)))
-         "C-S-h" (lambda () (interactive) (org-eval-in-calendar '(calendar-backward-month 1)))
-         "C-S-n" (lambda () (interactive) (org-eval-in-calendar '(calendar-forward-year 1)))
-         "C-S-e" (lambda () (interactive) (org-eval-in-calendar '(calendar-backward-year 1)))
-         "C-S-i" (lambda () (interactive) (org-eval-in-calendar '(calendar-forward-month 1)))
-         )
+            "C-h" (lambda () (interactive) (org-eval-in-calendar '(calendar-backward-day 1)))
+            "C-n" (lambda () (interactive) (org-eval-in-calendar '(calendar-forward-week 1)))
+            "C-e" (lambda () (interactive) (org-eval-in-calendar '(calendar-backward-week 1)))
+            "C-i" (lambda () (interactive) (org-eval-in-calendar '(calendar-forward-day 1)))
+            "C-S-h" (lambda () (interactive) (org-eval-in-calendar '(calendar-backward-month 1)))
+            "C-S-n" (lambda () (interactive) (org-eval-in-calendar '(calendar-forward-year 1)))
+            "C-S-e" (lambda () (interactive) (org-eval-in-calendar '(calendar-backward-year 1)))
+            "C-S-i" (lambda () (interactive) (org-eval-in-calendar '(calendar-forward-month 1)))
+            )
   (:keymaps 'org-mode-map
-   :states '(normal)
-   "RET" #'+org/dwim-at-point
-   "<return>" #'+org/dwim-at-point
-   "M-h" #'org-metaleft
-   "M-n" #'org-metadown
-   "M-e" #'org-metaup
-   "M-i" #'org-metaright
-   "M-H" #'org-shiftmetaleft
-   "M-N" #'org-shiftmetadown
-   "M-E" #'org-shiftmetaup
-   "M-I" #'org-shiftmetaright
-   "M-f" #'org-forward-sentence
-   "C-H" #'org-shiftcontrolleft
-   "C-N" #'org-shiftcontroldown
-   "C-E" #'org-shiftcontrolup
-   "C-E" #'org-shiftcontrolright
-   ;; TODO: put these in 'normal and 'visual mode maps
-   ;; "g h" 'org-up-element
-   ;; "g n" 'org-forward-element
-   ;; "g e" 'org-backward-element
-   ;; "g i" 'org-down-element
-   )
+            :states '(normal)
+            "RET" #'+org/dwim-at-point
+            "<return>" #'+org/dwim-at-point
+            "M-h" #'org-metaleft
+            "M-n" #'org-metadown
+            "M-e" #'org-metaup
+            "M-i" #'org-metaright
+            "M-H" #'org-shiftmetaleft
+            "M-N" #'org-shiftmetadown
+            "M-E" #'org-shiftmetaup
+            "M-I" #'org-shiftmetaright
+            "M-f" #'org-forward-sentence
+            "C-H" #'org-shiftcontrolleft
+            "C-N" #'org-shiftcontroldown
+            "C-E" #'org-shiftcontrolup
+            "C-E" #'org-shiftcontrolright
+            ;; TODO: put these in 'normal and 'visual mode maps
+            ;; "g h" 'org-up-element
+            ;; "g n" 'org-forward-element
+            ;; "g e" 'org-backward-element
+            ;; "g i" 'org-down-element
+            )
   :init
   (taylor-gl/localleader-def-create! org-mode-map
       "'" #'org-edit-special
@@ -1107,6 +1167,8 @@ If on a:
         ;; don't show DONE items in agenda
         org-agenda-skip-scheduled-if-done t
         org-agenda-skip-deadline-if-done t
+        org-agenda-use-time-grid nil
+        org-agenda-search-headline-for-time nil
         org-latex-packages-alist '(("" "clrscode3e" t)
                                    ("" "mathtools" t)
                                    ("" "amssymb" t))
@@ -1178,125 +1240,125 @@ If on a:
   :ghook ('(org-mode-hook org-agenda-mode-hook))
   :general
   (:states '(visual operator)
-	   :keymap 'evil-inner-text-objects-map
-	   :prefix "u"
-	   "e" #'evil-org-inner-object
-	   "E" #'evil-org-inner-element
-	   "r" #'evil-org-inner-greater-element
-	   "R" #'evil-org-inner-subtree)
+	         :keymap 'evil-inner-text-objects-map
+	         :prefix "u"
+	         "e" #'evil-org-inner-object
+	         "E" #'evil-org-inner-element
+	         "r" #'evil-org-inner-greater-element
+	         "R" #'evil-org-inner-subtree)
   (:states '(visual operator)
-	   :keymap 'evil-inner-text-objects-map
-	   :prefix "a"
-	   "e" #'evil-org-an-object
-	   "E" #'evil-org-an-element
-	   "r" #'evil-org-a-greater-element
-	   "R" #'evil-org-a-subtree)
+	         :keymap 'evil-inner-text-objects-map
+	         :prefix "a"
+	         "e" #'evil-org-an-object
+	         "E" #'evil-org-an-element
+	         "r" #'evil-org-a-greater-element
+	         "R" #'evil-org-a-subtree)
   ;; These are modified from 'evil-org-agenda-set-keys in evil-org-agenda, which I couldn't make
   ;; work on its own. Also modified for colemak.
-  (:states 'emacs
-	   :keymap 'org-agenda-mode-map
-	   ;; open
-	   "<tab>" #'org-agenda-goto
-	   "S-<return>" #'org-agenda-goto
-	   "g TAB" #'org-agenda-goto
-	   "RET" #'org-agenda-switch-to
+  (:states 'motion
+	         :keymaps 'org-agenda-mode-map
+	         ;; open
+	         "<tab>" #'org-agenda-goto
+	         "S-<return>" #'org-agenda-goto
+	         "g TAB" #'org-agenda-goto
+	         "RET" #'org-agenda-switch-to
 
-	   ;; close
-	   "q" #'org-agenda-quit
+	         ;; close
+	         "q" #'org-agenda-quit
 
-	   ;; motion
-	   "n" #'org-agenda-next-line
-	   "e" #'org-agenda-previous-line
-	   "gn" #'org-agenda-next-item
-	   "ge" #'org-agenda-previous-item
-	   "gN" #'org-agenda-next-item
-	   "gE" #'org-agenda-previous-item
-	   "gH" #'evil-window-top
-	   "gM" #'evil-window-middle
-	   "gL" #'evil-window-bottom
-	   "C-n" #'org-agenda-next-item
-	   "C-e" #'org-agenda-previous-item
-	   "[[" #'org-agenda-earlier
-	   "]]" #'org-agenda-later
+	         ;; motion
+	         "n" #'org-agenda-next-line
+	         "e" #'org-agenda-previous-line
+	         "gn" #'org-agenda-next-item
+	         "ge" #'org-agenda-previous-item
+	         "gN" #'org-agenda-next-item
+	         "gE" #'org-agenda-previous-item
+	         "gH" #'evil-window-top
+	         "gM" #'evil-window-middle
+	         "gL" #'evil-window-bottom
+	         "C-n" #'org-agenda-next-item
+	         "C-e" #'org-agenda-previous-item
+	         "[[" #'org-agenda-earlier
+	         "]]" #'org-agenda-later
 
-	   ;; manipulation
-	   "N" #'org-agenda-priority-down
-	   "E" #'org-agenda-priority-up
-	   "H" #'org-agenda-do-date-earlier
-	   "I" #'org-agenda-do-date-later
-	   "t" #'org-agenda-todo
-	   "M-n" #'org-agenda-drag-line-forward
-	   "M-e" #'org-agenda-drag-line-backward
-	   "C-S-h" #'org-agenda-todo-previousset ; Original binding "C-S-<left>"
-	   "C-S-i" #'org-agenda-todo-nextset ; Original binding "C-S-<right>"
+	         ;; manipulation
+	         "N" #'org-agenda-priority-down
+	         "E" #'org-agenda-priority-up
+	         "H" #'org-agenda-do-date-earlier
+	         "I" #'org-agenda-do-date-later
+	         "t" #'org-agenda-todo
+	         "M-n" #'org-agenda-drag-line-forward
+	         "M-e" #'org-agenda-drag-line-backward
+	         "C-S-h" #'org-agenda-todo-previousset ; Original binding "C-S-<left>"
+	         "C-S-i" #'org-agenda-todo-nextset ; Original binding "C-S-<right>"
 
-	   ;; undo
-	   "l" #'org-agenda-undo
+	         ;; undo
+	         "l" #'org-agenda-undo
 
-	   ;; actions
-	   "dd" #'org-agenda-kill
-	   "dA" #'org-agenda-archive
-	   "da" #'org-agenda-archive-default-with-confirmation
-	   "ct" #'org-agenda-set-tags
-	   "ce" #'org-agenda-set-effort
-	   "cT" #'org-timer-set-timer
-	   "i" #'org-agenda-diary-entry
-	   "a" #'org-agenda-add-note
-	   "A" #'org-agenda-append-agenda
-	   "C" #'org-agenda-capture
+	         ;; actions
+	         "dd" #'org-agenda-kill
+	         "dA" #'org-agenda-archive
+	         "da" #'org-agenda-archive-default-with-confirmation
+	         "ct" #'org-agenda-set-tags
+	         "ce" #'org-agenda-set-effort
+	         "cT" #'org-timer-set-timer
+	         "i" #'org-agenda-diary-entry
+	         "a" #'org-agenda-add-note
+	         "A" #'org-agenda-append-agenda
+	         "C" #'org-agenda-capture
 
-	   ;; mark
-	   "m" #'org-agenda-bulk-toggle
-	   "~" #'org-agenda-bulk-toggle-all
-	   "*" #'org-agenda-bulk-mark-all
-	   "%" #'org-agenda-bulk-mark-regexp
-	   "M" #'org-agenda-bulk-unmark-all
-	   "x" #'org-agenda-bulk-action
+	         ;; mark
+	         "m" #'org-agenda-bulk-toggle
+	         "~" #'org-agenda-bulk-toggle-all
+	         "*" #'org-agenda-bulk-mark-all
+	         "%" #'org-agenda-bulk-mark-regexp
+	         "M" #'org-agenda-bulk-unmark-all
+	         "x" #'org-agenda-bulk-action
 
-	   ;; refresh
-	   "gr" #'org-agenda-redo
-	   "gR" #'org-agenda-redo-all
+	         ;; refresh
+	         "gr" #'org-agenda-redo
+	         "gR" #'org-agenda-redo-all
 
-	   ;; quit
-	   "ZQ" #'org-agenda-exit
-	   "ZZ" #'org-agenda-quit
+	         ;; quit
+	         "ZQ" #'org-agenda-exit
+	         "ZZ" #'org-agenda-quit
 
-	   ;; display
-	   "gD" #'org-agenda-view-mode-dispatch
-	   "ZD" #'org-agenda-dim-blocked-tasks
+	         ;; display
+	         "gD" #'org-agenda-view-mode-dispatch
+	         "ZD" #'org-agenda-dim-blocked-tasks
 
-	   ;; filter
-	   "sc" #'org-agenda-filter-by-category
-	   "sr" #'org-agenda-filter-by-regexp
-	   "se" #'org-agenda-filter-by-effort
-	   "st" #'org-agenda-filter-by-tag
-	   "s^" #'org-agenda-filter-by-top-headline
-	   "ss" #'org-agenda-limit-interactively
-	   "S" #'org-agenda-filter-remove-all
+	         ;; filter
+	         "sc" #'org-agenda-filter-by-category
+	         "sr" #'org-agenda-filter-by-regexp
+	         "se" #'org-agenda-filter-by-effort
+	         "st" #'org-agenda-filter-by-tag
+	         "s^" #'org-agenda-filter-by-top-headline
+	         "ss" #'org-agenda-limit-interactively
+	         "S" #'org-agenda-filter-remove-all
 
-	   ;; clock
-	   "I" #'org-agenda-clock-in ; Original binding
-	   "O" #'org-agenda-clock-out ; Original binding
-	   "cg" #'org-agenda-clock-goto
-	   "cc" #'org-agenda-clock-cancel
-	   "cr" #'org-agenda-clockreport-mode
+	         ;; clock
+	         "I" #'org-agenda-clock-in ; Original binding
+	         "O" #'org-agenda-clock-out ; Original binding
+	         "cg" #'org-agenda-clock-goto
+	         "cc" #'org-agenda-clock-cancel
+	         "cr" #'org-agenda-clockreport-mode
 
-	   ;; go and show
-	   "." #'org-agenda-goto-today
-	   "gc" #'org-agenda-goto-calendar
-	   "gC" #'org-agenda-convert-date
-	   "gd" #'org-agenda-goto-date
-	   "gh" #'org-agenda-holidays
-	   "gm" #'org-agenda-phases-of-moon
-	   "gs" #'org-agenda-sunrise-sunset
-	   "gt" #'org-agenda-show-tags
+	         ;; go and show
+	         "." #'org-agenda-goto-today
+	         "gc" #'org-agenda-goto-calendar
+	         "gC" #'org-agenda-convert-date
+	         "gd" #'org-agenda-goto-date
+	         "gh" #'org-agenda-holidays
+	         "gm" #'org-agenda-phases-of-moon
+	         "gs" #'org-agenda-sunrise-sunset
+	         "gt" #'org-agenda-show-tags
 
-	   "p" #'org-agenda-date-prompt
-	   "P" #'org-agenda-show-the-flagging-note
+	         "p" #'org-agenda-date-prompt
+	         "P" #'org-agenda-show-the-flagging-note
 
-	   ;; Others
-	   "+" #'org-agenda-manipulate-query-add
-	   "-" #'org-agenda-manipulate-query-subtract)
+	         ;; Others
+	         "+" #'org-agenda-manipulate-query-add
+	         "-" #'org-agenda-manipulate-query-subtract)
   :init
   (setq evil-org-retain-visual-state-on-shift t)
   (setq evil-org-special-o/O '(table-row))
@@ -1304,32 +1366,32 @@ If on a:
   :config
   (evil-org-set-key-theme '(navigation insert additional calendar))
   (setq evil-org-movement-bindings
-	'((up . "e") (down . "n")
-	  (left . "h") (right . "i")))
+	      '((up . "e") (down . "n")
+	        (left . "h") (right . "i")))
   )
 
 ;; TODO: fix this put in use-package:
 ;;(with-eval-after-load 'org-faces
-  ;;(dolist (face '((org-level-1)
-    ;;              (org-level-2)
-    ;;              (org-level-3)
-    ;;              (org-level-4)
-    ;;              (org-level-5)
-    ;;              (org-level-6)
-    ;;              (org-level-7)
-    ;;              (org-level-8)))
-    ;;(set-face-attribute (car face) nil :font "Noto Sans" :weight 'regular :height 1.1)
-  ;;)
-  ;; making certain things fixed-pitch
-  ;;(require 'org-indent)
-  ;;(set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
-  ;;(set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
-  ;;(set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch))
-  ;;(set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-  ;;(set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-  ;;(set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-  ;;(set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
-  ;;(set-face-attribute 'org-table nil :inherit '(shadow fixed-pitch)))
+;;(dolist (face '((org-level-1)
+;;              (org-level-2)
+;;              (org-level-3)
+;;              (org-level-4)
+;;              (org-level-5)
+;;              (org-level-6)
+;;              (org-level-7)
+;;              (org-level-8)))
+;;(set-face-attribute (car face) nil :font "Noto Sans" :weight 'regular :height 1.1)
+;;)
+;; making certain things fixed-pitch
+;;(require 'org-indent)
+;;(set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+;;(set-face-attribute 'org-code nil :inherit '(shadow fixed-pitch))
+;;(set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch))
+;;(set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+;;(set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+;;(set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+;;(set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
+;;(set-face-attribute 'org-table nil :inherit '(shadow fixed-pitch)))
 
 ;; Setup org-roam for zettelkasten
 (use-package org-roam
@@ -1360,7 +1422,7 @@ If on a:
 ;; =============================================================================
 ;; various coding-related modes
 (defconst code-mode-hooks
-  '(prog-mode-hook python-mode-hook elisp-mode-hook elixir-mode-hook emacs-lisp-mode-hook)
+  '(prog-mode-hook python-mode-hook elisp-mode-hook elixir-mode-hook emacs-lisp-mode-hook typescript-mode js-mode web-mode)
   )
 
 (defun taylor-gl/setup-indent (n)
@@ -1369,14 +1431,13 @@ If on a:
   ;; java/c/c++
   (setq c-basic-offset n)
   ;; web development
-  (setq coffee-tab-width n) ; coffeescript
-  (setq javascript-indent-level n) ; javascript-mode
   (setq js-indent-level n) ; js-mode
-  (setq js2-basic-offset n) ; js2-mode, in latest js2-mode, it's alias of js-indent-level
   (setq web-mode-markup-indent-offset n) ; web-mode, html tag in html file
   (setq web-mode-css-indent-offset n) ; web-mode, css in html file
   (setq web-mode-code-indent-offset n) ; web-mode, js code in html file
-  (setq css-indent-offset n) ; css-mode
+  (setq web-mode-block-padding n)
+  (setq css-indent-offset n)
+  (setq typescript-indent-level n)
   )
 
 (defun taylor-gl/setup-prettify-symbols-mode ()
@@ -1386,45 +1447,66 @@ If on a:
   )
 
 (defun taylor-gl/setup-code-mode ()
-    (setq indent-tabs-mode nil)
-    (taylor-gl/setup-indent 2)
-    (taylor-gl/setup-prettify-symbols-mode)
-    )
+  (setq indent-tabs-mode nil)
+  (taylor-gl/setup-indent 2)
+  (taylor-gl/setup-prettify-symbols-mode)
+  (setq display-fill-column-indicator-column 100)
+  )
 
 ;; Setup smartparens
-(use-package smartparens
+;; (use-package smartparens
+  ;; :demand
   ;; TODO disable auto paren insertion
-  :config
-  (require 'smartparens-config)
-  (sp-pair "\\\\(" "\\\\)" :actions '(wrap))
-  (sp-pair "\\{" "\\}" :actions '(wrap))
-  (sp-pair "\\(" "\\)" :actions '(wrap))
-  (sp-pair "\\\"" "\\\"" :actions '(wrap))
-  (sp-pair "/*" "*/" :actions '(wrap))
-  (sp-pair "\"" "\"" :actions '(wrap))
-  (sp-pair "'" "'" :actions '(wrap))
-  (sp-pair "(" ")" :actions '(wrap))
-  (sp-pair "[" "]" :actions '(wrap))
-  (sp-pair "{" "}" :actions '(wrap))
-  (sp-pair "`" "`" :actions '(wrap))
-  )
+  ;; :config
+  ;; (require 'smartparens-config)
+  ;; (sp-pair "\\\\(" "\\\\)" :actions '(wrap))
+  ;; (sp-pair "\\{" "\\}" :actions '(wrap))
+  ;; (sp-pair "\\(" "\\)" :actions '(wrap))
+  ;; (sp-pair "\\\"" "\\\"" :actions '(wrap))
+  ;; (sp-pair "/*" "*/" :actions '(wrap))
+  ;; (sp-pair "\"" "\"" :actions '(wrap))
+  ;; (sp-pair "'" "'" :actions '(wrap))
+  ;; (sp-pair "(" ")" :actions '(wrap))
+  ;; (sp-pair "[" "]" :actions '(wrap))
+  ;; (sp-pair "{" "}" :actions '(wrap))
+  ;; (sp-pair "`" "`" :actions '(wrap))
+  ;; )
 
 ;; setup ligatures and code mode settings
 (mapc
  (lambda (code-mode-hook)
    (general-add-hook code-mode-hook #'taylor-gl/setup-code-mode)
-   (general-add-hook code-mode-hook #'smartparens-mode)
+   ;; (general-add-hook code-mode-hook #'smartparens-mode)
+   (general-add-hook code-mode-hook #'display-fill-column-indicator-mode)
+   (general-add-hook code-mode-hook #'format-all-ensure-formatter)
    )
-   code-mode-hooks)
+ code-mode-hooks)
 
 ;; setup projectile
 (use-package projectile
   :demand t
   :general
   (:keymaps 'projectile-command-map
-   "ESC" nil)
+            "ESC" nil)
   :config
   (projectile-mode t)
+  (setq projectile-indexing-method 'hybrid)
+  (setq projectile-ignored-projects '(
+                                      "/home/taylor"
+                                      "~/"
+                                      "~/Dropbox/"
+                                      "~/bl/"
+                                      ))
+  ;; projectile-ignored-projects is ignored when using 'alien projectile-indexing-method (default).
+  ;; This is because "ag" is used by projectile for searching instead of native projectile search.
+  ;; This sets command-line settings for ag which ignore certain files/directories.
+  (when (executable-find "ag")
+    (setq projectile-generic-command
+          (let ((ag-cmd ""))
+            (setq ag-ignorefile
+                  (concat "--path-to-ignore" " "
+                          (expand-file-name "ag_ignore" user-emacs-directory)))
+            (concat "ag -0 --files-with-matches --nocolor --hidden --one-device --path-to-ignore ~/.ignore"))))
   )
 
 ;; Setup ag (for use with projectile-ag)
@@ -1437,8 +1519,8 @@ If on a:
   :demand t
   :general
   (:states 'insert
-   "<backspace>" #'smart-hungry-delete-backward-char
-   "C-d" #'smart-hungry-delete-forward-char)
+           "<backspace>" #'smart-hungry-delete-backward-char
+           "C-d" #'smart-hungry-delete-forward-char)
   :config
 	(smart-hungry-delete-add-default-hooks))
 
@@ -1465,6 +1547,11 @@ If on a:
   :config
   (company-posframe-mode 1))
 
+;; Setup company-ctags for project-specific autocompletion
+;; TODO crashes emacs
+;;(use-package company-ctags
+;;  :ghook 'company-mode-hook)
+
 ;; Setup flycheck (linting)
 (use-package flycheck
   :demand
@@ -1482,77 +1569,43 @@ If on a:
   :config
   (flycheck-pos-tip-mode))
 
-;; Setup LSP-server
-;; TODO: lsp-workspace-folders-add and remove -- bind to <localleader>
-(defconst lsp-mode-hooks
-  '(python-mode-hook))
-(use-package lsp-mode
-  :after company
-  :demand
-  :ghook (lsp-mode-hooks #'lsp)
-  ('lsp-mode-hook #'lsp-enable-which-key-integration)
-  ('elixir-mode-hook #'lsp)
-  ('sql-mode-hook #'lsp)
-  ('tex-mode-hook #'lsp)
-  ('LaTeX-mode-hook #'lsp)
-  :commands (lsp lsp-deferred)
+(use-package format-all
   :init
-  (setq lsp-headerline-breadcrumb-enable nil)
-  (setq lsp-enable-symbol-highlighting nil)
-  (setq lsp-keymap-prefix "C-c l") ;; having this set creates which-key integration
-  (setq lsp-enable-folding nil)
-  (setq lsp-enable-on-type-formatting nil)
-  (add-to-list 'exec-path "~/.emacs.d/lsp-servers/elixir-ls/")
-  (add-to-list 'exec-path "~/.emacs.d/lsp-servers/.digestif/")
-  (setq lsp-sqls-server "~/.emacs.d/lsp-servers/sqls")
-  (setq lsp-sqls-connections
-	'(((driver . "postgresql") (dataSourceName . "host=dbsrv1.teach.cs.toronto.edu port=22 user=lunttayl password=2dfdc1c3e dbname=csc343h-lunttayl sslmode=disable"))))
-  ;; (require 'dash-functional)
-  (setq lsp-file-watch-threshold 5000)
-  (taylor-gl/localleader-def-create! lsp-mode-map
-      "l" '(:keymap lsp-command-map :package lsp :which-key "lsp")
-      "l =" '(:ignore t :which-key "formatting")
-      "l a" '(:ignore t :which-key "code actions")
-      "l g" '(:ignore t :which-key "goto")
-      "l h" '(:ignore t :which-key "help")
-      "l r" '(:ignore t :which-key "refactor")
-      "l w" '(:ignore t :which-key "workspace")
-      "l F" '(:ignore t :which-key "folders")
-      "l G" '(:ignore t :which-key "peek")
-      "l T" '(:ignore t :which-key "toggle")
-      )
-  :custom
-  (lsp-prefer-flymake nil)
-  (lsp-semantic-tokens-enable t)
-  )
-
-;; Setup lsp-ui
-(use-package lsp-ui
-  :after lsp-mode
-  :ghook 'lsp-mode-hook
-  :commands lsp-ui-mode
-  :custom
-  (lsp-ui-doc-enable nil)
-  (lsp-ui-sideline-show-hover nil)
-  (lsp-ui-sideline-diagnostic-max-lines 8)
-  (lsp-ui-sideline-show-diagnostics t)
-  (lsp-ui-sideline-ignore-duplicate t)
-  (lsp-ui-sideline-enable t)
-  (lsp-ui-flycheck-enable t)
-  )
-
-;; Setup lsp-ivy
-(use-package lsp-ivy
-  :after lsp
-  :commands lsp-ivy-workspace-symbol)
-
-;; Setup python
-(setq python-shell-interpreter "python3")
-(use-package lsp-pyright
   :demand
-  :ghook ('python-mode-hook #'lsp))
+  :ghook ('format-all-mode-hook #'format-all-ensure-formatter)
+  )
 
-;; Setup web-mode for HTML, CSS, Javascript, elixir .eex files, etc.
+;; Setup tide-mode for typescript
+(use-package typescript-mode)
+
+(defun setup-tide-mode ()
+  (tide-setup)
+  (flycheck-mode t)
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  (tide-hl-identifier-mode t)
+  (setq company-tooltip-align-annotations t)
+  )
+
+(defun maybe-activate-tide-mode ()
+  (when (and (stringp buffer-file-name)
+             (string-match "\\.[tj]sx?\\'" buffer-file-name))
+    (tide-setup)
+    (tide-hl-identifier-mode)
+    )
+  )
+
+(use-package tide
+  :ghook ('typescript-mode-hook #'setup-tide-mode)
+  :ghook ('web-mode-hook #'maybe-activate-tide-mode)
+  :ghook ('js-mode-hook #'setup-tide-mode)
+  :config
+  (flycheck-add-mode 'typescript-tslint 'web-mode)
+  (flycheck-add-mode 'javascript-eslint 'web-mode)
+  (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
+  (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
+  )
+
+;; Setup web-mode for HTML, CSS, JSX/TSX, elixir .eex files, etc.
 (use-package web-mode
   :mode "\\.[px]?html?\\'"
   :mode "\\.\\(?:tpl\\|blade\\)\\(?:\\.php\\)?\\'"
@@ -1568,11 +1621,32 @@ If on a:
   :mode "\\.eco\\'"
   :mode "wp-content/themes/.+/.+\\.php\\'"
   :mode "templates/.+\\.php\\'"
+  :mode "\\.jsx\\'"
+  :mode "\\.tsx\\'"
   :init
   (setq web-mode-enable-html-entities-fontification t)
   (setq web-mode-auto-close-style 1)
+  (setq web-mode-enable-auto-quoting nil)
+  (setq web-mode-enable-auto-pairing nil)
+  (setq web-mode-enable-current-column-highlight t)
+  (taylor-gl/localleader-def-create! web-mode-map
+      "m" #'(web-mode-tag-match :which-key "jump to matching tag")
+      "f" #'(web-mode-fold-or-unfold :which-key "fold/unfold tag")
+      )
   :config
   (add-to-list 'web-mode-engines-alist '("elixir" . "\\.eex\\'"))
+  (sp-with-modes '(web-mode)
+    (sp-local-pair "<" nil :actions :rem)
+    (sp-local-pair "% " " %"
+                   :unless '(sp-in-string-p)
+                   :post-handlers '(((lambda (&rest _ignored)
+                                       (just-one-space)
+                                       (save-excursion (insert " ")))
+                                     "SPC" "=" "#")))
+    (sp-local-pair "<% " " %>")
+    (sp-local-pair "<%= " " %>")
+    (sp-local-pair "<%# " " %>")
+    (sp-local-pair "<-" ""))
   )
 
 ;; Setup elixir/phoenix
@@ -1588,7 +1662,6 @@ If on a:
   :ghook ('elixir-mode-hook #'alchemist-mode)
   :init
   (taylor-gl/localleader-def-create! alchemist-mode-map
-      "=" #'(elixir-format :which-key "format buffer")
       "i" #'(:ignore t :which-key "iex")
       "i c" #'(alchemist-compile-this-buffer :which-key "compile buffer")
       "i i" #'(alchemist-iex-compile-this-buffer-and-go :which-key "compile buffer and open iex")
@@ -1633,7 +1706,7 @@ If on a:
       ))
 
 (use-package exunit
-  :ghook 'elixir-mode
+  :ghook 'elixir-mode-hook
   :init
   (taylor-gl/localleader-def-create! elixir-mode-map
       "T" #'(:ignore t :which-key "test (exunit)")
@@ -1647,9 +1720,16 @@ If on a:
 
 ;; Setup SQL
 ;; INPROGRESS: this was done in a hurry
+;; TODO interactive mode
 (use-package sql
   :mode (("\\.sql" . sql-mode)
-	 ("\\.ddl" . sql-mode)))
+	       ("\\.ddl" . sql-mode))
+  )
+
+(use-package sql-indent
+  :after sql
+  :ghook ('sqlind-minor-mode-hook 'sql-mode)
+  )
 
 ;; Setup emacs-lisp
 (use-package highlight-quoted
@@ -1709,7 +1789,10 @@ If on a:
   :after yasnippet)
 
 ;; Setup git
-(use-package magit)
+(use-package magit
+  :init
+  (setq magit-bury-buffer-function #'magit-restore-window-configuration)
+  )
 (use-package magit-todos
   :after magit hl-todo
   )

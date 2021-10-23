@@ -8,7 +8,9 @@
 # enable bash completion in interactive shells
 if ! shopt -oq posix; then
     # system completions for bash
-    if [ -f /usr/share/bash-completion/bash_completion ]; then
+    if [ -f /usr/share/bash-completion/completions ]; then
+        . /usr/share/bash-completion/
+    elif [ -f /usr/share/bash-completion/bash_completion ]; then
         . /usr/share/bash-completion/bash_completion
     elif [ -f /etc/bash_completion ]; then
         . /etc/bash_completion
@@ -36,17 +38,29 @@ if [ -x /usr/lib/command-not-found -o -x /usr/share/command-not-found/command-no
     }
 fi
 
+# Do not overwrite files when redirecting output by default.
+set -o noclobber
+
+# Wrap the following commands for interactive use to avoid accidental file overwrites.
+rm() { command rm -i "${@}"; }
+cp() { command cp -i "${@}"; }
+mv() { command mv -i "${@}"; }
+
+# limit mv and rm to prevent unintentional sadness
+# alias mv=' timeout 8 mv -iv'
+# alias rm=' timeout 3 rm -Iv --one-file-system'
+
 # make utilities such as grep and ls use colored output
 eval $(dircolors -b)
 alias grep='grep --color=auto'
 alias diff=colordiff
 # colored ls with icons
-alias ls='lsd'
+alias ls='lsd --color=auto'
 # alias ls='ls -F --color=auto'
 
 # Add emacs as editor
 # --alternate-editor="" ensures the daemon will be opened if necessary
-export EDITOR='emacsclient --create-frame --no-wait --alternate-editor=""'
+export EDITOR='emacsclient --create-frame --alternate-editor=""'
 e() { (emacsclient --create-frame --no-wait --alternate-editor="" "$@" &> /dev/null &) }
 
 # Show git branch name (from https://askubuntu.com/a/946716)
@@ -61,10 +75,6 @@ else
  PS1='${debian_chroot:+($debian_chroot)}\u:\w$(parse_git_branch)\$ '
 fi
 unset color_prompt force_color_prompt
-
-# limit mv and rm to prevent unintentional sadness
-alias mv=' timeout 8 mv -iv'
-alias rm=' timeout 3 rm -Iv --one-file-system'
 
 alias ..='cd ..'
 alias ...='cd ../..'
@@ -83,6 +93,8 @@ PATH=$PATH:/usr/local/bin
 PATH=$PATH:/sbin
 PATH=$PATH:/usr/sbin
 PATH=$PATH:~/.emacs.d/bin
+PATH=$PATH:~/.local/share/flatpak/exports/bin
+PATH=$PATH:/var/lib/flatpak/exports/bin
 
 # set the path for locate to the home directory
 export LOCATE_PATH=/home/taylor/.locate.db

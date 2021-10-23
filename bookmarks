@@ -1,0 +1,50 @@
+;;;; Emacs Bookmark Format Version 1;;;; -*- coding: utf-8-emacs; mode: lisp-data -*-
+;;; This format is meant to be slightly human-readable;
+;;; nevertheless, you probably don't want to edit it.
+;;; -*- End Of Bookmark File Format Version Stamp -*-
+(("wr"
+ (filename . "~/Dropbox/emacs/work.org")
+ (front-context-string . " Erlang instance")
+ (rear-context-string . "e to the running")
+ (position . 32456))
+("work"
+ (filename . "~/Dropbox/emacs/work.org")
+ (front-context-string . "#+STARTUP: overv")
+ (rear-context-string)
+ (position . 1))
+("rf"
+ (filename . "~/Dropbox/emacs/todo.org")
+ (front-context-string . "r\n** TODO Invoic")
+ (rear-context-string . "0 Thu>\n\n* Regula")
+ (position . 25363))
+("blog"
+ (filename . "~/Dropbox/emacs/blog.org")
+ (front-context-string . "\n[[~/Dropbox/ema")
+ (rear-context-string . "ARTUP: overview\n")
+ (position . 21))
+("todo"
+ (filename . "~/Dropbox/emacs/todo.org")
+ (front-context-string . "\n* Want to Learn")
+ (rear-context-string . "P: latexpreview\n")
+ (position . 45))
+("someday-maybe"
+ (filename . "~/Dropbox/emacs/someday-maybe.org")
+ (front-context-string . "#+STARTUP: overv")
+ (rear-context-string)
+ (position . 1))
+("i3"
+ (filename . "~/.i3/config")
+ (front-context-string . "# NOTE Depends o")
+ (rear-context-string)
+ (position . 1))
+("reference"
+ (filename . "~/Dropbox/emacs/reference.org")
+ (front-context-string . "#+STARTUP: overv")
+ (rear-context-string)
+ (position . 1))
+("w"
+ (filename . "~/Dropbox/emacs/work.org")
+ (front-context-string . "#+STARTUP: overv")
+ (rear-context-string)
+ (position . 1))
+)

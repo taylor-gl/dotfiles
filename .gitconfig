@@ -6,3 +6,7 @@
 	gpgsign = true
 [includeIf "gitdir:~/bl/"]
 	path = ~/.gitconfig-work
+[format]
+	pretty = oneline
+[log]
+	abbrevCommit = true
