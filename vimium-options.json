@@ -8,12 +8,24 @@
     {
       "pattern": "https?://www.vocabulary.com/*",
       "passKeys": ""
+    },
+    {
+      "pattern": "https?://mail.google.com/*",
+      "passKeys": "x"
+    },
+    {
+      "pattern": "https?://mail.google.com/*",
+      "passKeys": ""
+    },
+    {
+      "pattern": "https?://github.com/*",
+      "passKeys": ""
     }
   ],
   "filterLinkHints": false,
   "waitForEnterForFilteredHints": true,
   "hideHud": false,
-  "keyMappings": "# colemak vimium bindings matching my emacs config\n# I also changed the link hint characters to be colemak-friendly:\n# rastneiodhzxcv\n\nunmap j\nunmap n\nmap n scrollDown\n\nunmap k\nmap e scrollUp\n\nunmap l\nunmap i\nmap i scrollRight\n\nunmap zL\nmap zI scrollToRight\n\nmap u insert\n\nunmap N\nunmap K\n\nunmap H\n\nunmap L\n\nunmap J\n\nmap s LinkHints.activateMode action=focus\nmap S LinkHints.activateModeToOpenInNewTab action=hover\n\n# using Vivaldi keybindings for these features\nunmap o\nunmap O\nunmap b\nunmap B\nunmap r\nunmap /\nunmap x\n# Old mappings\n# map R reload hard\n# map k performFind\n# map K performBackwardsFind\n# map L goForward\n# map l goBack\n# map E previousTab\n# map N nextTab\n\n# Map in Vivaldi:\n# View - Address Bar: Ctrl+i\n# Tab - New Tab: t\n# Tab - Close Tab: x\n# Tab - Previous Tab (by Order): E\n# Tab - Next Tab (by Order): N\n# Tab - Move Active Tab Backward: Ctrl+E\n# Tab - Move Active Tab Forward: Ctrl+N\n# Page - Focus Address Field: o\n# Page - Reload Page: r\n# Page - Force Page Reload: R\n# Page - Find in Page: /\n# Page - Find Next in Page: Ctrl+k\n# Page - Find Previous in Page: Ctrl+K\n# Page - History Back: l\n# Page - History Forward: Ctrl+r",
+  "keyMappings": "# colemak vimium bindings matching my emacs config\n# I also changed the link hint characters to be colemak-friendly:\n# rastneiodhzxcv\n\nunmap j\nunmap n\nmap n scrollDown\n\nunmap k\nmap e scrollUp\n\nunmap l\nunmap i\nmap i scrollRight\n\nunmap zL\nmap zI scrollToRight\n\nmap u insert\n\nunmap N\nunmap K\n\nunmap H\n\nunmap L\n\nunmap J\n\nmap s LinkHints.activateMode action=focus\nmap S LinkHints.activateModeToOpenInNewTab action=hover\n\n# using Vivaldi keybindings for these features\nunmap o\nunmap O\nunmap b\nunmap B\nunmap r\nunmap /\nunmap x\n# Old mappings\n# map R reload hard\n# map k performFind\n# map K performBackwardsFind\n# map L goForward\n# map l goBack\n# map E previousTab\n# map N nextTab\n\n# Map in Vivaldi:\n# View - Address Bar: Alt+i\n# Tab - New Tab: Alt-t\n# Tab - Close Tab: Alt-x\n# Tab - Previous Tab (by Order): E\n# Tab - Next Tab (by Order): N\n# Tab - Move Active Tab Backward: Ctrl+E\n# Tab - Move Active Tab Forward: Ctrl+N\n# Page - Focus Address Field: Alt-o\n# Page - Reload Page: Alt-r\n# Page - Force Page Reload: Alt-R\n# Page - Find in Page: Alt-/\n# Page - Find Next in Page: Alt+k\n# Page - Find Previous in Page: Alt+K\n# Page - History Back: Alt-l\n# Page - History Forward: Alt-Ctrl+r",
   "linkHintCharacters": "rastneiodhzxcv",
   "linkHintNumbers": "0123456789",
   "newTabUrl": "about:newtab",
@@ -26,5 +38,5 @@
   "grabBackFocus": true,
   "searchEngines": "w: https://www.wikipedia.org/w/index.php?title=Special:Search&search=%s Wikipedia\ng: https://www.google.com/search?q=%s Google\nl: https://www.google.com/search?q=%s&btnI I'm feeling lucky...\ny: https://www.youtube.com/results?search_query=%s Youtube\nm: https://www.google.com/maps?q=%s Google maps\na: https://www.amazon.ca/s/?field-keywords=%s Amazon",
   "searchUrl": "https://www.google.com/search?q=",
-  "userDefinedLinkHintCss": "div > .vimiumHintMarker {\n/* linkhint boxes */\nbackground: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFF785),\n  color-stop(100%,#FFC542));\nborder: 1px solid #E3BE23;\n}\n\ndiv > .vimiumHintMarker span {\n/* linkhint text */\ncolor: black;\nfont-weight: bold;\nfont-size: 12px;\n}\n\ndiv > .vimiumHintMarker > .matchingCharacter {\n}"
+  "userDefinedLinkHintCss": "div > .vimiumHintMarker {\n/* linkhint boxes */\nbackground: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#d65d0e),\n  color-stop(100%,#d65d0e));\nborder: 1px solid #282828;\n}\n\ndiv > .vimiumHintMarker span {\n/* linkhint text */\ncolor: #ebdbb2;\nfont-weight: bold;\nfont-size: 12px;\n}\n\ndiv > .vimiumHintMarker > .matchingCharacter {\n}"
 }
