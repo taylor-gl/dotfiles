@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: console.log labelled
+# key: console.label
+# --
+console.log({$1})$0

@@ -50,6 +50,16 @@ mv() { command mv -i "${@}"; }
 # alias mv=' timeout 8 mv -iv'
 # alias rm=' timeout 3 rm -Iv --one-file-system'
 
+# Aliases for faster movement up directories
+alias ..="cd .."
+alias ...="cd ../.."
+alias ....="cd ../../.."
+alias .....="cd ../../../.."
+alias ......="cd ../../../../.."
+alias .......="cd ../../../../../.."
+alias ........="cd ../../../../../../.."
+alias .........="cd ../../../../../../../.."
+
 # make utilities such as grep and ls use colored output
 eval $(dircolors -b)
 alias grep='grep --color=auto'
@@ -60,8 +70,9 @@ alias ls='lsd --color=auto'
 
 # Add emacs as editor
 # --alternate-editor="" ensures the daemon will be opened if necessary
+# --eval "(taylor-gl/emacsclient)" runs some functions I want run when I run emacsclient; However, I don't add this to EDITOR because it breaks e.g. git launching my EDITOR
 export EDITOR='emacsclient --create-frame --alternate-editor=""'
-e() { (emacsclient --create-frame --no-wait --alternate-editor="" "$@" &> /dev/null &) }
+e() { (emacsclient --create-frame --no-wait --alternate-editor="" --eval "(taylor-gl/emacsclient)" "$@" &> /dev/null &) }
 
 # Show git branch name (from https://askubuntu.com/a/946716)
 force_color_prompt=yes
@@ -88,6 +99,7 @@ alias youtube-to-mp3='youtube-dl --extract-audio --audio-format mp3'
 PATH=$PATH:~/.scripts:.
 PATH=$PATH:~/.build/
 PATH=$PATH:~/blog/scripts/
+PATH=$PATH:~/.local/kitty.app/bin
 PATH=$PATH:~/.local/bin
 PATH=$PATH:/usr/local/bin
 PATH=$PATH:/sbin
@@ -95,13 +107,14 @@ PATH=$PATH:/usr/sbin
 PATH=$PATH:~/.emacs.d/bin
 PATH=$PATH:~/.local/share/flatpak/exports/bin
 PATH=$PATH:/var/lib/flatpak/exports/bin
+PATH=$PATH:~/.build/elixir-1.13.3/bin
+PATH=$PATH:~/.build/otp_src_24.0.2/bin
+PATH=$PATH:~/.nvm/versions/node/v16.14.0/bin
 
 # set the path for locate to the home directory
 export LOCATE_PATH=/home/taylor/.locate.db
 
 # Languages
-#. $HOME/.build/asdf/asdf.sh
-#. $HOME/.build/asdf/completions/asdf.bash
 PATH=$PATH:/home/taylor/.gem/ruby/2.5.0/bin
 PATH=$PATH:/home/taylor/.cargo/bin
 PATH=$PATH:/home/taylor/.cargo/env
@@ -113,5 +126,22 @@ export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || pr
 # export DPI setting for alacritty
 export WINIT_HIDPI_FACTOR=1.0 alacritty
 
+# Change keyboard repeat rate
+xset r rate 200 100
+
+# Set hyper key
+xmodmap ~/.Xmodmap
+
+# Add zoxide (faster cd)
+eval "$(zoxide init bash)"
+
+# Add fuck
+eval $(thefuck --alias)
+
 # export gpg key
 export GPG_TTY=$(tty)
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# Generated for envman. Do not edit.
+[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+

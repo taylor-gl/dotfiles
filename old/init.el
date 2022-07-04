@@ -53,13 +53,17 @@
 (menu-bar-mode -1)
 (set-fringe-mode 10)
 (global-visual-line-mode t)
+;; TODO get visual-fill-column-mode working
+;;(global-visual-fill-column-mode t)
+;;(setq-default visual-fill-column-width 120)
+;;(setq-default visual-fill-column-enable-sensible-window-split t)
 
 ;; Fonts
 ;; The following must use default-frame-alist rather than set-face-attribute, otherwise
 ;; emacsclient starts with the wrong font size compared to emacs proper
 ;;(add-to-list 'default-frame-alist '(font . "FantasqueSansMono Nerd Font Mono-12"))
 ;; (set-face-attribute 'variable-pitch nil :font "Noto Sans" :height 126 :weight 'regular)
-(set-face-attribute 'default nil :family "FantasqueSansMono Nerd Font" :height 120)
+(set-face-attribute 'default nil :family "Ubuntu Mono" :height 110)
 
 ;; Performance (or the illusion thereof)
 ;; emacs >= 27 required:
@@ -93,6 +97,7 @@
       `(("." . ,"~/.emacs.d/backups")))
 (setq auto-save-file-name-transforms
       `((".*" ,(concat user-emacs-directory "auto-save-list/") t)))
+(setq create-lockfiles nil)
 
 ;; Don't ask me for confirmation when closing buffers with running processes etc.
 (setq kill-buffer-query-functions nil)
@@ -152,6 +157,12 @@
      (,(intern (concat "taylor-gl/localleader-def-" (symbol-name keymap)))
       ,@body)))
 
+;; based on crux-find-user-init-file, but opens in the same window
+(defun taylor-gl/find-user-init-file ()
+ "Edit the `user-init-file', in the same window."
+  (interactive)
+  (find-file user-init-file))
+
 (use-package general
   :demand
   :config
@@ -188,7 +199,7 @@
     "e l" #'(flycheck-list-errors :which-key "list errors")
     "e v" #'(flycheck-verify-setup :which-key "verify flycheck checker")
     "f" #'(:ignore t :which-key "file")
-    "f i" #'(crux-find-user-init-file :which-key "find init.el")
+    "f i" #'(taylor-gl/find-user-init-file :which-key "find init.el")
     "f d" #'(dired-jump :which-key "dir of this file")
     "f f" #'(counsel-find-file :which-key "find file")
     "f l" #'(counsel-locate :which-key "locate file")
@@ -269,8 +280,9 @@
     "w i" #'(evil-window-right :which-key "right")
     "w n" #'(evil-window-next :which-key "next")
     "w p" #'(evil-window-mru :which-key "previous")
-    "w s" #'(evil-window-split :which-key "split above/below")
-    "w v" #'(evil-window-vsplit :which-key "split left/right")
+    "w f" #'(make-frame :which-key "split frame")
+    ;; "w s" #'(evil-window-split :which-key "split above/below")
+    ;; "w v" #'(evil-window-vsplit :which-key "split left/right")
     "w H" #'(+evil/window-move-left :which-key "left")
     "w N" #'(+evil/window-move-down :which-key "down")
     "w E" #'(+evil/window-move-up :which-key "up")
@@ -353,6 +365,19 @@
         (:eval
          (format (if (buffer-modified-p) "💾︎ %s" " %s") (buffer-name)))))
 
+
+;; Make emacs re-use existing frames for popups and stuff
+;; (use-package i3
+  ;; :demand
+  ;; :straight (:host github :repo "vava/i3-emacs" :branch "master" :files ("i3.el")))
+;; (use-package i3-integration
+  ;; :after i3
+  ;; :demand
+  ;; :straight (:host github :repo "vava/i3-emacs" :branch "master" :files ("i3-integration.el"))
+  ;; :config
+  ;; (i3-one-window-per-frame-mode-on)
+  ;; )
+
 ;; Setup counsel/ivy/swiper
 (use-package counsel ;; includes ivy and swiper
   :diminish
@@ -423,19 +448,22 @@
 (use-package doom-themes
   :demand
   :custom-face
+  (org-headline-done ((t (:foreground "#faecf7")))) ;; light pink
   ;; change ugly org-level-1 etc. color choices
-  (outline-1 ((t (:foreground "#fadb2f")))) ;; only bold level 1 face
-  (outline-2 ((t (:foreground "#8ec07c"))))
-  (outline-3 ((t (:foreground "#a2bbb1"))))
-  (outline-4 ((t (:foreground "#8ec07c"))))
-  (outline-5 ((t (:foreground "#a2bbb1"))))
-  (outline-6 ((t (:foreground "#8ec07c"))))
-  (outline-7 ((t (:foreground "#a2bbb1"))))
-  (outline-8 ((t (:foreground "#8ec07c"))))
+  (outline-1 ((t (:foreground "#ec3b82" )))) ;; cerise
+  (outline-2 ((t (:foreground "#fa611f")))) ;; dark-orange
+  (outline-3 ((t (:foreground "#ff9933")))) ;; light-orange
+  (outline-4 ((t (:foreground "#fa611f")))) ;; dark-orange
+  (outline-5 ((t (:foreground "#ff9933")))) ;; light-orange
+  (outline-6 ((t (:foreground "#fa611f")))) ;; dark-orange
+  (outline-7 ((t (:foreground "#ff9933")))) ;; light-orange
+  (outline-8 ((t (:foreground "#fa611f")))) ;; dark-orange
   :config
-  (setq doom-themes-enable-bold t)
-  (setq doom-themes-enable-italic t)
-  (load-theme 'doom-gruvbox t)
+  (setq doom-themes-enable-bold t
+	doom-themes-enable-italic t
+	pastel-brighter-comments t
+	pastel-padded-modeline t)
+  (load-theme 'pastel t)
   (doom-themes-visual-bell-config)
   (doom-themes-org-config))
 
@@ -539,40 +567,46 @@
   :config
   (global-hl-todo-mode 1)
   (setq hl-todo-keyword-faces
-        '(("FIXME"   . "#fb4932")
-          ("GOTCHA"  . "#fb4932")
-          ("TODO" . "#fb4932")
-          ("XXX"  . "#fb4932")
-          ("DEBUG"  . "#fe8019")
-          ("INPROGRESS"  . "#fe8019")
-          ("REVIEW"  . "#fe8019")
-          ("WAITING"  . "#fe8019")
-          ("STUB"   . "#fabd2f")
-          ("MAYBE"  . "#fabd2f")
-          ("SHOULD"  . "#fabd2f")
-          ("HACK"  . "#b8bb26")
-          ("NOTE"  . "#b8bb26")
-          ("ABANDONED"  . "#a89984")
-	        ("DEPRECATED"  . "#a89984")
-	        ("DONE"  . "#a89984")
+        '(("FIXME"   . "#ec3b82")
+          ("GOTCHA"  . "#ec3b82")
+          ("TODO" . "#ec3b82")
+          ("XXX"  . "#ec3b82")
+          ("DEBUG"  . "#fa611f")
+          ("INPROGRESS"  . "#fa611f")
+          ("REVIEW"  . "#fa611f")
+          ("WAITING"  . "#fa611f")
+          ("STUB"   . "#ff9933")
+          ("MAYBE"  . "#ff9933")
+          ("SHOULD"  . "#ff9933")
+          ("HACK"  . "#68af9c")
+          ("NOTE"  . "#68af9c")
+          ("ABANDONED"  . "#e4a3db")
+	        ("DEPRECATED"  . "#e4a3db")
+	        ("DONE"  . "#e4a3db")
           )))
 
 ;; Setup shackle for buffer/window placement
+
+;; Make emacs generally use one window per frame (one emacs subwindow per operating-system window)
+(setq pop-up-frames t)
+
 (use-package shackle
   :demand
   :init
   (setq shackle-rules '((("^\\*\\(?:[Cc]ompil\\(?:ation\\|e-Log\\)\\|Messages\\)" "^\\*info\\*$" "\\`\\*magit-diff: .*?\\'" grep-mode "*Flycheck errors*") :regexp t :align below :noselect t :size 0.3)
-                        ("^\\*\\(?:Wo\\)?Man " :regexp t :align right :select t)
-                        ("^\\*Calc" :regexp t :align below :select t :size 0.3)
-                        ("^\\*Alchemist" :regexp t :align below :select t :size 0.3 :same nil)
+                        ("^\\*\\(?:Wo\\)?Man " :regexp t :frame t :inhibit-window-quit t)
+                        ("^\\*Calc" :regexp t :size 0.3 :popup t)
+                        ("^\\*Alchemist" :regexp t :align below :select t :size 0.3 :popup t)
                         ("^\\*lsp-help" :regexp t :select t :align bottom :size 0.2)
-                        (("^\\*Warnings" "^\\*Warnings" "^\\*CPU-Profiler-Report " "^\\*Memory-Profiler-Report " "^\\*Process List\\*" "*Error*") :regexp t :align below :noselect t :size 0.2)
-                        ("^\\*\\(?:Proced\\|timer-list\\|Abbrevs\\|Output\\|Occur\\|unsent mail\\)\\*" :regexp t :ignore t)
-                        (("*shell*" "*eshell*") :popup t :select t)
+                        (("^\\*Warnings" "^\\*Warnings" "^\\*CPU-Profiler-Report " "^\\*Memory-Profiler-Report " "^\\*Process List\\*" "*Error*") :regexp t :align below :noselect t :size 0.2 :popup t)
+                        ("^\\*\\(?:Proced\\|timer-list\\|Abbrevs\\|Output\\|Occur\\|unsent mail\\)\\*" :regexp t :ignore t :popup t)
+                        (("*shell*" "*eshell*") :frame t)
                         ("*ag search*" :regexp t :popup t :select t :align below :size 0.3)
-                        ("^ \\*undo-tree\\*" :regexp t :other t :align right :select t :size 0.2)
-                        ("^\\*\\([Hh]elp\\|Apropos\\)" :regexp t :align right :select t)
-                        ("\\`\\*magit.*?\\*\\'" :regexp t :align t :size 0.4 :inhibit-window-quit t)
+                        ("^ \\*undo-tree\\*" :regexp t :frame t)
+                        ("^\\*\\([Hh]elp\\|Apropos\\)" :regexp t :frame t :inhibit-window-quit t)
+                        ("\\`\\*magit.*?\\*\\'" :regexp t :frame t)
+                        (magit-status-mode :frame t :inhibit-window-quit t)
+                        (magit-log-mode :frame t :inhibit-window-quit t)
                         ))
   (setq shackle-default-rule '(:select t :same t)) ;; reuse current window for new buffers by default
   (setq shackle-default-size 0.4)
@@ -642,7 +676,10 @@
 	         "gn" #'evil-next-visual-line
 	         "gN" #'evil-next-visual-line
 	         "zi" #'evil-scroll-column-right
-	         "zI" #'evil-scroll-right)
+	         "zI" #'evil-scroll-right
+           "H-n" #'evil-scroll-down
+           "H-e" #'evil-scroll-up
+           )
   (:states '(normal visual)
 	         "l" #'undo-tree-undo
 	         "C-r" #'undo-tree-redo
@@ -673,34 +710,98 @@
   (add-to-list 'evil-emacs-state-modes 'custom-mode)
   (add-to-list 'evil-emacs-state-modes 'eshell-mode))
 
+;; TODO Testing out my own version of general-translate-key, modified to separate behavior of
+;; destructive keyword into set-backup and use-backup
+(cl-defun taylor-gl/translate-key (states keymaps
+                                        &rest maps
+                                        &key dont-set-backup
+                                        &key dont-use-backup
+                                        &allow-other-keys)
+  (declare (indent defun))
+  (general--ensure-lists states keymaps)
+  (dolist (keymap-name keymaps)
+    (dolist (state states)
+      (setq keymap-name (general--unalias keymap-name)
+            state (general--unalias state t))
+      (let* ((keymap (general--get-keymap state keymap-name))
+             (backup-keymap (intern (format "general-%s%s-backup-map"
+                                            keymap-name
+                                            (if state
+                                                (format "-%s-state" state)
+                                              ""))))
+             (lookup-keymap (if (and (not dont-use-backup)
+                                     (boundp backup-keymap))
+                                (symbol-value backup-keymap)
+                              (copy-keymap keymap)))
+             (maps (cl-loop for (key replacement) on maps by 'cddr
+                            ;; :destructive can be in MAPS
+                            unless (keywordp key)
+                            collect (general--kbd key)
+                            and collect (if replacement
+                                            (lookup-key
+                                             lookup-keymap
+                                             (general--kbd replacement))
+                                          ;; unbind
+                                          nil))))
+        (unless (or dont-set-backup
+                    (boundp backup-keymap))
+          (set backup-keymap lookup-keymap))
+        (apply #'general-define-key :states state :keymaps keymap-name maps)))))
+
 ;; Setup evil-collection -- evil keybindings for many modes
 (defun taylor-gl/colemak-translation (_mode mode-keymaps &rest _rest)
-  (evil-collection-translate-key 'normal mode-keymaps
+  ;; (taylor-gl/translate-key 'normal mode-keymaps :dont-set-backup t :dont-use-backup t
+    ;; "n" "n")
+  ;; (taylor-gl/translate-key 'normal mode-keymaps :dont-set-backup t :dont-use-backup t
     ;; colemak hnei is qwerty hjkl
-    "n" "j"
-    "e" "k"
-    "i" "l"
-    ;; add back nei
-    ;; "j" "e"
-    ;; "k" "n"
+    ;; "n" "j"
+    ;; "e" "k"
+    ;; "i" "l"
+    ;; )
+  ;; (taylor-gl/translate-key 'normal mode-keymaps :dont-set-backup t :dont-use-backup t
+    ;; "j" "n"
+    ;; "k" "e"
     ;; "l" "i"
-    ;; other evil-colemak-basics stuff -- ignore for now
-    ;; "k" "n"
-    ;; "K" "N"
-    ;; "u" "i"
-    ;; "U" "I"
-    ;; "l" "u"
-    ;; "N" "J"
-    ;; "E" "K"
-    ;; "f" "e"
-    ;; "F" "E"
-    ;; "t" "f"
-    ;; "T" "F"
-    ;; "j" "t"
-    ;; "J" "T"
-    ))
+    ;; )
+  (taylor-gl/translate-key 'normal mode-keymaps)
+  (dolist (keymap mode-keymaps)
+    (taylor-gl/translate-key 'normal keymap :dont-set-backup t
+      "n" "j"
+      "e" "k"
+      "i" "l"
+      )
+    ;; (taylor-gl/translate-key 'normal keymap :dont-set-backup t
+      ;; add back nei
+      ;; "j" "e"
+      ;; "k" "n"
+      ;; "l" "i"
+    ;; )
+  )
+  ;; (evil-collection-translate-key 'normal mode-keymaps
+    ;; TODO problem: I want a version of this function which *doesn't* update the saved keymap (destructive t) but *does* reference it (destructive nil)
+    ;; colemak hnei is qwerty hjkl
+    ;; "n" "j"
+    ;; "e" "k"
+    ;; "i" "l"
+    ;; )
+  ;; (evil-collection-translate-key 'normal mode-keymaps :destructive t
+  ;; other evil-colemak-basics stuff -- ignore for now
+  ;; "k" "n"
+  ;; "K" "N"
+  ;; "u" "i"
+  ;; "U" "I"
+  ;; "l" "u"
+  ;; "N" "J"
+  ;; "E" "K"
+  ;; "f" "e"
+  ;; "F" "E"
+  ;; "t" "f"
+  ;; "T" "F"
+  ;; "j" "t"
+  ;; "J" "T"
+  ;; )
+  )
 (use-package evil-collection
-  ;; check evil-collection-mode-list; remove magit and do manually
   :after evil general
   :ghook ('evil-collection-setup-hook #'taylor-gl/colemak-translation)
   :demand
@@ -709,9 +810,20 @@
   (:keymaps 'Info-mode-map
             "n" #'Info-next-reference
             "e" #'Info-prev-reference)
-  :init
+  ;; (:keymaps 'git-rebase-mode-map
+  ;; "e" nil
+  ;; "m" nil
+  ;; "S-e" 'git-rebase-edit
+  ;; )
   :config
   (evil-collection-init)
+  ;; TODO I can't for the life of me figure out how to unbind 'e' in normal mode in git-rebase-mode-map
+  ;; (general-define-key
+  ;; :states 'normal
+  ;; :keymaps 'git-rebase-mode-map
+  ;; "e" nil
+  ;; "m" nil
+  ;; "S-e" 'git-rebase-edit)
   )
 
 ;; Setup evil-snipe
@@ -852,15 +964,15 @@ the only window, use evil-window-move-* (e.g. `evil-window-move-far-left')."
             "M-n" #'org-metadown
             "M-e" #'org-metaup
             "M-i" #'org-metaright
-            "M-H" #'org-shiftmetaleft
-            "M-N" #'org-shiftmetadown
-            "M-E" #'org-shiftmetaup
-            "M-I" #'org-shiftmetaright
-            "M-f" #'org-forward-sentence
-            "C-H" #'org-shiftcontrolleft
-            "C-N" #'org-shiftcontroldown
-            "C-E" #'org-shiftcontrolup
-            "C-E" #'org-shiftcontrolright
+            "M-S-h" #'org-shiftmetaleft
+            "M-S-n" #'org-shiftmetadown
+            "M-S-e" #'org-shiftmetaup
+            "M-S-i" #'org-shiftmetaright
+            "M-S-f" #'org-forward-sentence
+            "C-S-h" #'org-shiftcontrolleft
+            "C-S-n" #'org-shiftcontroldown
+            "C-S-e" #'org-shiftcontrolup
+            "C-S-i" #'org-shiftcontrolright
             ;; TODO: put these in 'normal and 'visual mode maps
             ;; "g h" 'org-up-element
             ;; "g n" 'org-forward-element
@@ -873,6 +985,8 @@ the only window, use evil-window-move-* (e.g. `evil-window-move-far-left')."
       "*" #'org-ctrl-c-star
       "-" #'org-ctrl-c-minus
       "-" #'org-ctrl-c-minus
+      "%" #'org-mark-ring-push
+      "&" #'org-mark-ring-goto
       "." #'(org-goto :which-key "goto")
       "c" #'(org-insert-todo-heading :which-key "item insert checkbox/todo")
       "i" #'(org-toggle-item :which-key "toggle item")
@@ -913,6 +1027,7 @@ the only window, use evil-window-move-* (e.g. `evil-window-move-far-left')."
       "l S" #'(org-insert-last-stored-link :which-key "insert last stored link")
       )
   :config
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
   (defun +org--toggle-inline-images-in-subtree (&optional beg end refresh)
     "Refresh inline image previews in the current heading/tree."
     (let ((beg (or beg
@@ -1021,8 +1136,8 @@ current file). Only scans first 2048 bytes of the document."
                in (cl-remove-if-not #'listp org-todo-keywords)
                for keywords =
                (mapcar (lambda (x) (if (string-match "^\\([^(]+\\)(" x)
-                                  (match-string 1 x)
-                                x))
+                                       (match-string 1 x)
+                                     x))
                        keyword-spec)
                if (eq type 'sequence)
                if (member keyword keywords)
@@ -1186,14 +1301,14 @@ If on a:
         org-M-RET-may-split-line nil
         org-todo-keywords '((sequence "TODO(t)" "INPROGRESS(i)" "SHOULD(s)" "MAYBE(m)" "NOTE(n)" "WAITING(w)" "NPC(p)" "MET(P)" "|" "DONE(d)" "ABANDONED(a)" ))
         org-todo-keyword-faces '(
-                                 ("TODO" :foreground "#fb4932" :weight bold)
-                                 ("INPROGRESS" :foreground "#fe8019" :weight bold)
-                                 ("WAITING" :foreground "#fe8019" :weight bold)
-                                 ("SHOULD" :foreground "#fabd2f" :weight bold)
-                                 ("NOTE" :foreground "#b8bb26" :weight bold)
-                                 ("MAYBE" :foreground "#fabd2f" :weight bold)
-                                 ("DONE" :foreground "#a89984" :weight bold)
-                                 ("ABANDONED" :foreground "#928374" :weight bold)
+                                 ("TODO" :foreground "#ec3b82" :weight bold)
+                                 ("INPROGRESS" :foreground "#fa611f" :weight bold)
+                                 ("WAITING" :foreground "#fa611f" :weight bold)
+                                 ("SHOULD" :foreground "#ff9933" :weight bold)
+                                 ("NOTE" :foreground "#68af9c" :weight bold)
+                                 ("MAYBE" :foreground "#ff9933" :weight bold)
+                                 ("DONE" :foreground "#e4a3db" :weight bold)
+                                 ("ABANDONED" :foreground "#e4a3db" :weight bold)
                                  )
         calendar-holidays '((holiday-fixed 1 1 "New Year's Day")
                             (holiday-float 2 1 3 "Family Day")
@@ -1255,8 +1370,8 @@ If on a:
 	         "R" #'evil-org-a-subtree)
   ;; These are modified from 'evil-org-agenda-set-keys in evil-org-agenda, which I couldn't make
   ;; work on its own. Also modified for colemak.
-  (:states 'motion
-	         :keymaps 'org-agenda-mode-map
+  (:states 'emacs
+           :keymaps '(org-agenda-mode-map org-agenda-keymap)
 	         ;; open
 	         "<tab>" #'org-agenda-goto
 	         "S-<return>" #'org-agenda-goto
@@ -1454,23 +1569,22 @@ If on a:
   )
 
 ;; Setup smartparens
-;; (use-package smartparens
-  ;; :demand
-  ;; TODO disable auto paren insertion
-  ;; :config
-  ;; (require 'smartparens-config)
-  ;; (sp-pair "\\\\(" "\\\\)" :actions '(wrap))
-  ;; (sp-pair "\\{" "\\}" :actions '(wrap))
-  ;; (sp-pair "\\(" "\\)" :actions '(wrap))
-  ;; (sp-pair "\\\"" "\\\"" :actions '(wrap))
-  ;; (sp-pair "/*" "*/" :actions '(wrap))
-  ;; (sp-pair "\"" "\"" :actions '(wrap))
-  ;; (sp-pair "'" "'" :actions '(wrap))
-  ;; (sp-pair "(" ")" :actions '(wrap))
-  ;; (sp-pair "[" "]" :actions '(wrap))
-  ;; (sp-pair "{" "}" :actions '(wrap))
-  ;; (sp-pair "`" "`" :actions '(wrap))
-  ;; )
+(use-package smartparens
+  :demand
+  :config
+  (require 'smartparens-config)
+  (sp-pair "\\\\(" "\\\\)" :actions '(wrap))
+  (sp-pair "\\{" "\\}" :actions '(wrap))
+  (sp-pair "\\(" "\\)" :actions '(wrap))
+  (sp-pair "\\\"" "\\\"" :actions '(wrap))
+  (sp-pair "/*" "*/" :actions '(wrap))
+  (sp-pair "\"" "\"" :actions '(wrap))
+  (sp-pair "'" "'" :actions '(wrap))
+  (sp-pair "(" ")" :actions '(wrap))
+  (sp-pair "[" "]" :actions '(wrap))
+  (sp-pair "{" "}" :actions '(wrap))
+  (sp-pair "`" "`" :actions '(wrap))
+  )
 
 ;; setup ligatures and code mode settings
 (mapc
@@ -1531,8 +1645,8 @@ If on a:
   (:keymaps 'company-active-map
             "RET" 'nil
             "<return>" 'nil
-            "<tab>" #'company-complete-selection
-            "TAB" #'company-complete-selection)
+            "M-<tab>" #'company-complete-selection
+            "M-TAB" #'company-complete-selection)
   :custom
   (comany-begin-commands '(self-insert-command))
   (company-idle-delay 0.0) ;; some people use 0.1 as "instant", but that is visibly non-instant
@@ -1623,6 +1737,7 @@ If on a:
   :mode "templates/.+\\.php\\'"
   :mode "\\.jsx\\'"
   :mode "\\.tsx\\'"
+  :mode "\\.svg\\'"
   :init
   (setq web-mode-enable-html-entities-fontification t)
   (setq web-mode-auto-close-style 1)
@@ -1783,19 +1898,30 @@ If on a:
 ;; =============================================================================
 ;; Setup YASnippet
 (use-package yasnippet
+  :demand
+  :general
+  (:states 'insert
+           "<tab>" yas-expand
+           "TAB" yas-expand
+           )
   :config
   (yas-global-mode 1))
+
 (use-package yasnippet-snippets
+  :demand
   :after yasnippet)
 
 ;; Setup git
 (use-package magit
-  :init
+  :demand
+  :config
   (setq magit-bury-buffer-function #'magit-restore-window-configuration)
   )
-(use-package magit-todos
-  :after magit hl-todo
-  )
+
+;; (use-package magit-todos
+;; :after magit hl-todo
+;; )
+
 (use-package git-gutter
   :demand t
   :init
@@ -1805,6 +1931,7 @@ If on a:
   :custom
   (git-gutter:update-interval 1)
   )
+
 (use-package git-gutter-fringe
   :demand t
   :after git-gutter
@@ -1845,12 +1972,4 @@ If on a:
  '(evil-goggles-undo-redo-add-face ((t (:inherit diff-added))))
  '(evil-goggles-undo-redo-change-face ((t (:inherit diff-changed))))
  '(evil-goggles-undo-redo-remove-face ((t (:inherit diff-removed))))
- '(evil-goggles-yank-face ((t (:inherit diff-changed))))
- '(outline-1 ((t (:foreground "#fadb2f"))))
- '(outline-2 ((t (:foreground "#8ec07c"))))
- '(outline-3 ((t (:foreground "#a2bbb1"))))
- '(outline-4 ((t (:foreground "#8ec07c"))))
- '(outline-5 ((t (:foreground "#a2bbb1"))))
- '(outline-6 ((t (:foreground "#8ec07c"))))
- '(outline-7 ((t (:foreground "#a2bbb1"))))
- '(outline-8 ((t (:foreground "#8ec07c")))))
+ '(evil-goggles-yank-face ((t (:inherit diff-changed)))))
