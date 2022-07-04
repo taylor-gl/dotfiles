@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: console.log reached
+# key: console.log(
+# --
+console.log("===============REACHED!===============")$0

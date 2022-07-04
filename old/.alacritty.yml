@@ -1,0 +1,70 @@
+TERM: alacritty
+window:
+  padding:
+    x: 8
+    y: 0
+font:
+  normal:
+    family: Fira Code
+    style: Regular
+  size: 11.0
+colors:
+  primary:
+    background: '0xfafafa'
+    foreground: '0x383a42'
+    dim_foreground: '0x202328'
+    bright_foreground: '0x9ca0a4'
+  selection:
+    text: CellForeground
+    background: '0xe1d4de'
+  normal:
+    black:   '0x1b2229'
+    red:     '0xec3b82'
+    green:   '0x68af9c'
+    yellow:  '0xff9933'
+    blue:    '0x557ebd'
+    magenta: '0xe4a3db'
+    cyan:    '0x6e64c2'
+    white:   '0xfafafa'
+  bright:
+    black:   '0x1c1f24'
+    red:     '0xf0629b'
+    green:   '0x86bfb0'
+    yellow:  '0xffad5c'
+    blue:    '0x7798ca'
+    magenta: '0xe9b5e2'
+    cyan:    '0x8b83ce'
+    white:   '0xffffff'
+  dim:
+    black:   '0x000000'
+    red:     '0xbd2f68'
+    green:   '0x008081'
+    yellow:  '0xfa611f'
+    blue:    '0x2657a7'
+    magenta: '0xdd94d9'
+    cyan:    '0x5946b1'
+    white:   '0xf0f0f0'
+cursor:
+  style:
+    shape: Beam
+    blinking: On
+  blink_interval: 500
+  unfocused_hollow: false
+  thickness: 0.2
+window_opacity: 1.0
+mouse:
+  hints:
+    launcher:
+      program: xdg-open
+key_bindings:
+  # Swap b and h, p and e, and f and i
+  # Control
+  - {key: A, mods: Control, chars: "\x01"} # default already
+  - {key: P, mods: Control, chars: "\x05"} # Ctrl-p to go to end of line
+  - {key: E, mods: Control, chars: "\x10"} # Ctrl-e to go up in history
+  - {key: B, mods: Control, chars: "\x08"} # Ctrl-b to delete backward one char
+  - {key: H, mods: Control, chars: "\x02"} # Ctrl-h to go left one character
+  - {key: I, mods: Control, chars: "\x06"} # Ctrl-i to go right one character
+  # Alt
+  - {key: H, mods: Alt, chars: "\x1bb"} # Alt-h moves back one word
+  - {key: I, mods: Alt, chars: "\x1bf"} # Alt-i moves forward one word

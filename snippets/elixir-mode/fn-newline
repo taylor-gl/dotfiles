@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: fn newline
+# key: fnn
+# --
+fn ${1:x} ->
+$0
+end)

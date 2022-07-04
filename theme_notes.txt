@@ -1,0 +1,50 @@
+# listed are the true colors, then the 256 color
+# main bg/fg color
+bg: #fafafa white white (alabaster) (lighter than base0)
+fg: #383a42 #424242 black (~tuna) (same as base5)
+
+# off-color variants of bg and fg
+bg-alt: #faecf7 white (~amour) (same as light-pink)
+fg-alt: #c6c7c7 #c6c7c7 (same as base3)
+
+# spectrum from white to black
+base0      #f0f0f0 #f0f0f0
+base1      #e7e7e7 #e7e7e7
+base2      #dfdfdf #dfdfdf
+base3      #c6c7c7 #c6c7c7
+base4      #9ca0a4 #9ca0a4
+base5      #383a42 #424242
+base6      #202328 #2e2e2e
+base7      #1c1f24 #1e1e1e
+base8      #1b2229 black
+
+cerise: #ec3b82 #ff5f87 (~french rose)
+
+light-pink: #faecf7 white (~amour) -- very light, used as a highlight color
+! I have switched from #faecf7 to #efc7e9 because #faecf7 was too light
+mid-pink: #e4a3db #e4a3db (~light orchid) -- pretty light as well -- use for comments?
+orchid/dark-pink: #dd94d9 #d787d7 (~orchid)
+
+dark-orange: #fa611f #ff5f00 (~orange)
+light-orange: #ff9933 #ff875f (neon carrot)
+
+light-teal: #68af9c #5fafaf (~silver tree)
+dark-teal: #008081 #008787 (~teal)
+
+light-blue: #557ebd #5f87af (~steel blue)
+dark-blue: #2657a7 #005faf (~St. Tropaz)
+
+light-blue-purple: #6e64c2 #5f5faf (~blue marguerite)
+dark-blue-purple: #5946b1 #5f5faf (~blue violet)
+
+NOTE no true red, no yellow, and no true green
+
+NOTE the selection color used by emacs ends up being #e1d4de
+
+Apply theme to:
+- desktop bg
+- gtk theme, cursor, folder icons, etc.
+- vivaldi
+- betterdiscord
+- alacritty (using +/- 20% brightness for variants)
+- emacs

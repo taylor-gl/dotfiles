@@ -1,0 +1,8 @@
+! map Hyper_L to F24
+keycode 202 = Hyper_L
+
+! leave mod4 as super only
+remove mod4 = Hyper_L
+
+! add mod3 to Hyper_L
+add mod3 = Hyper_L

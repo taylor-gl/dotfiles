@@ -1,0 +1,29 @@
+bg: #fafafa white white (alabaster) (lighter than base0)
+fg: #383a42 #424242 black (~tuna) (same as base5)
+
+# off-color variants of bg and fg
+bg-alt: #faecf7 white (~amour) (same as light-pink)
+fg-alt: #c6c7c7 #c6c7c7 (same as base3)
+
+# spectrum from white to black
+base0      #f0f0f0 #f0f0f0
+base1      #e7e7e7 #e7e7e7
+base2      #dfdfdf #dfdfdf
+base3      #c6c7c7 #c6c7c7
+base4      #9ca0a4 #9ca0a4
+base5      #383a42 #424242
+base6      #202328 #2e2e2e
+base7      #1c1f24 #1e1e1e
+base8      #1b2229 black
+
+cerise: #ec3b82 #ff5f87 (~french rose)
+
+light-pink: #faecf7 white (~amour) -- very light, used as a highlight color
+mid-pink: #e4a3db #e4a3db (~light orchid) -- pretty light as well -- use for comments?
+orchid/dark-pink: #dd94d9 #d787d7 (~orchid)
+
+dark-orange: #fa611f #ff5f00 (~orange)
+light-orange: #ff9933 #ff875f (neon carrot)
+
+light-teal: #68af9c #5fafaf (~silver tree)
+dark-teal: #008081 #008787 (~teal)

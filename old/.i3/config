@@ -57,6 +57,7 @@ bindsym --release $f14 exec scrot ~/Screenshots/%F_%T_$wx$h.png --select -e 'xcl
 
 # program launcher
 bindsym $sup+x exec rofi -show drun -theme dmenu
+bindsym XF86Launch7 exec python3 ~/.build/rofimoji/rofimoji.py -s ask
 
 # shortcuts for launching programs
 bindsym $sup+a exec anki
@@ -154,10 +155,10 @@ bindsym $sup+r restart
 bindsym $sup+Shift+r exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
 
 # resize window
-bindsym $alt+Shift+$left resize shrink width 10 px or 10 ppt
-bindsym $alt+Shift+$down resize grow height 10 px or 10 ppt
-bindsym $alt+Shift+$up resize shrink height 10 px or 10 ppt
-bindsym $alt+Shift+$right resize grow width 10 px or 10 ppt
+bindsym $sup+$alt+$left resize shrink width 10 px or 10 ppt
+bindsym $sup+$alt+$down resize grow height 10 px or 10 ppt
+bindsym $sup+$alt+$up resize shrink height 10 px or 10 ppt
+bindsym $sup+$alt+$right resize grow width 10 px or 10 ppt
 # bindsym $alt+Shift+$left exec i3-smart-resize "Left" "70 px"
 # bindsym $alt+Shift+$right exec i3-smart-resize "Right" "70 px"
 # bindsym $alt+Shift+$up exec i3-smart-resize "Up" "70 px"
@@ -371,5 +372,6 @@ mode "$mode_gaps_left" {
 #######################################################################
 # Startup
 #######################################################################
+exec_always xmodmap ~/.Xmodmap
 exec_always --no-startup-id feh --bg-scale ~/Dropbox/dotfiles/polygon_bg.png
 exec_always ~/.xprofile

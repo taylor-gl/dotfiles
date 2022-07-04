@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: schema
+# key: schema
+# --
+schema "${1:schema_name}" do
+  $0
+end

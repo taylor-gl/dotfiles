@@ -2,16 +2,21 @@
 ;;; This format is meant to be slightly human-readable;
 ;;; nevertheless, you probably don't want to edit it.
 ;;; -*- End Of Bookmark File Format Version Stamp -*-
-(("wr"
+(("work"
  (filename . "~/Dropbox/emacs/work.org")
  (front-context-string . " Erlang instance")
  (rear-context-string . "e to the running")
- (position . 32456))
-("work"
- (filename . "~/Dropbox/emacs/work.org")
- (front-context-string . "#+STARTUP: overv")
- (rear-context-string)
- (position . 1))
+ (position . 33486))
+("beambox-logbook"
+ (filename . "~/Dropbox/bl/beambox-logbook/")
+ (front-context-string . "config\n  drwxr-x")
+ (rear-context-string . "96 Nov 12 22:34 ")
+ (position . 254))
+("prism"
+ (filename . "~/Dropbox/bl/prism/")
+ (front-context-string)
+ (rear-context-string . "n 28 14:04 test\n")
+ (position . 1043))
 ("rf"
  (filename . "~/Dropbox/emacs/todo.org")
  (front-context-string . "r\n** TODO Invoic")
@@ -39,11 +44,6 @@
  (position . 1))
 ("reference"
  (filename . "~/Dropbox/emacs/reference.org")
- (front-context-string . "#+STARTUP: overv")
- (rear-context-string)
- (position . 1))
-("w"
- (filename . "~/Dropbox/emacs/work.org")
  (front-context-string . "#+STARTUP: overv")
  (rear-context-string)
  (position . 1))
