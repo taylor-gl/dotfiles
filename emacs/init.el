@@ -1,74 +1,98 @@
-;;+----------------------------------------------------------------------------------------+
-;;|                                                                                        |
-;;|   BASICS & INTERFACE                                                                   |
-;;|                                                                                        |
-;;+----------------------------------------------------------------------------------------+
+;;; init.el --- Taylor G. Lunt's Emacs configuration -*- lexical-binding: t; -*-
+
+;;; Commentary:
+
+;; Colemak: the navigation cluster is h (backward) n (down) e (up) i (forward)
+;; p (end) -- globally in KEYBINDINGS, per-mode via `taylor-gl/colemak-motion'.
+
+;;; Code:
+
+(require 'cl-lib)
+(require 'subr-x)
+
+;;+-------------------------------------------------------------------------------------+
+;;|                                                                                     |
+;;|   BASICS & INTERFACE                                                                |
+;;|                                                                                     |
+;;+-------------------------------------------------------------------------------------+
 (setq user-full-name "Taylor G. Lunt"
       user-mail-address "taylor@taylor.gl")
 
-;; Clean up the interface
-(setq inhibit-startup-message t
-      visible-bell t
+;; Clean up the interface (bars and frame geometry live in early-init.el, so
+;; they never flash on screen)
+(setq visible-bell t
       frame-resize-pixelwise t) ;; For tiling window manager
-(scroll-bar-mode -1)
-(tool-bar-mode -1)
 (tooltip-mode -1)
-(menu-bar-mode -1)
 (set-fringe-mode 10)
 (global-visual-line-mode t)
 (setq-default cursor-type 'bar)
-(add-to-list 'default-frame-alist '(height . 60)) ;; The height of new frames
-(add-to-list 'default-frame-alist '(width . 100)) ;; The width of new frames
-(setq pop-up-frames t) ;; Make emacs generally use one window per frame
-(setq frame-auto-hide-function #'delete-frame) ;; When quitting the only window in a frame, delete that frame, rather than minimizing it
+
+;; When quitting the only window in a frame, delete that frame, rather than minimizing it
+(setq frame-auto-hide-function #'delete-frame)
 (setq-default x-stretch-cursor t) ;; Stretch the cursor to the width of a glyph (even e.g. a tab glyph)
 (show-paren-mode) ;; Highlight matching parens
 
+(setq warning-minimum-level :warning)
+
 ;; Choose fonts
-(set-face-attribute 'default nil :family "Fira Code" :height 105)
-(set-face-attribute 'fixed-pitch nil :family "Fira Code" :height 105)
-(set-face-attribute 'variable-pitch nil :family "Noto Serif" :height 100)
+;; One family across the whole desktop: Iosevka mono for code, Aile (its
+;; proportional cut) for UI, Etoile (its serif cut) for prose. Same skeleton
+;; everywhere, so nothing on screen is foreign to anything else.
+(set-face-attribute 'default nil :family "Iosevka Nerd Font Mono" :height 120)
+(set-face-attribute 'fixed-pitch nil :family "Iosevka Nerd Font Mono" :height 120)
+(set-face-attribute 'variable-pitch nil :family "Iosevka Etoile" :height 125)
 
 ;; Performance (or the illusion thereof)
-;; emacs >= 27 required:
 (setq bidi-inhibit-bpa t
-      bidi-paragraph-direction 'left-to-right
       bidi-paragraph-direction 'left-to-right
       echo-keystrokes 0.01
       jit-lock-defer-time 0
       fast-but-imprecise-scrolling t)
 
+;; early-init.el disables GC for the whole of startup; this puts it back
+(setq read-process-output-max (* 1024 1024)) ;; 1mb
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (setq gc-cons-threshold 100000000
+                  gc-cons-percentage 0.1)))
+
 ;; Better default behaviors
-(global-set-key (kbd "<escape>") #'keyboard-escape-quit) ;; Make ESC quit prompts
 (global-subword-mode 1) ;; Movement commands use subwords rather than words for symbols like ThisAndThat
 (defalias 'yes-or-no-p 'y-or-n-p)
+(setq confirm-nonexistent-file-or-buffer nil)
+(setq-default indent-tabs-mode nil) ;; Make tab insert spaces
 (setq kill-buffer-query-functions nil ;; Don't ask me for confirmation when closing buffers with running processes etc.
-      indent-tabs-mode nil ;; Make tab insert spaces
       sentence-end-double-space nil
       save-interprogram-paste-before-kill t ;; Save clipboard text to kill ring before replacing it, so clipboard text is not lost
-      mouse-wheel-scroll-amount '(3 ((control) . 6)) ;; Scroll two lines at a time unless control held
+      mouse-wheel-scroll-amount '(4 ((control) . 8)) ;; Scroll four lines at a time unless control held
       mouse-wheel-progressive-speed nil ;; No scroll acceleration, because who would want that?
-      custom-file (concat user-emacs-directory "custom.el") ;; Keep custom out of init.el
       initial-major-mode #'fundamental-mode ;; Scratch buffer mode
       initial-scratch-message nil ;; Scratch buffer starts empty
-      delete-by-moving-to-trash t) ;; Delete files to the trash
+      delete-by-moving-to-trash t ;; Delete files to the trash
+      next-screen-context-lines 25
+      scroll-preserve-screen-position t)
+
+;; When `custom-file' is nil, Customize writes into init.el instead.  Point it
+;; at a throwaway nothing ever loads back.
+(setq custom-file (expand-file-name "emacs-custom-discarded.el" temporary-file-directory))
 
 ;; Auto-saving
 (auto-save-visited-mode 1)
 (setq auto-save-visited-interval 5  ;; save after 5 seconds of idle time
       backup-directory-alist
-      `(("." . ,(concat user-emacs-directory "backups/")))
+      `(("." . ,(expand-file-name "backups/" user-emacs-directory)))
       auto-save-file-name-transforms
-      `((".*" ,(concat user-emacs-directory "auto-save-list/") t))
+      `((".*" ,(expand-file-name "auto-save-list/" user-emacs-directory) t))
       create-lockfiles nil)
 
-;; Add MELPA packages
-(require 'package)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 
-;; Set up straight.el and use-package for package management
+;;+-------------------------------------------------------------------------------------+
+;;|                                                                                     |
+;;|   PACKAGE MANAGEMENT                                                                |
+;;|                                                                                     |
+;;+-------------------------------------------------------------------------------------+
+;; straight.el bootstrap boilerplate.
 (setq straight-use-package-by-default t)
-;; Bootstrap boilerplate needed to install straight.el:
 (defvar bootstrap-version)
 (let ((bootstrap-file
        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
@@ -81,48 +105,42 @@
       (goto-char (point-max))
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
-(straight-use-package 'use-package)
+
+;; Built in since Emacs 29.  straight's bootstrap has already enabled
+;; `straight-use-package-mode', so `:straight' works against it.
+(require 'use-package)
 (setq use-package-always-defer t)
 
 ;; Setup general for keybindings
 (use-package general
   :demand)
 
-;; Setup hydra for custom keybinding menus
-(use-package hydra
-  :demand)
 
-;; I don't want TAB on C-i, nor RET on C-m
+;;+-------------------------------------------------------------------------------------+
+;;|                                                                                     |
+;;|   KEYBINDINGS                                                                       |
+;;|                                                                                     |
+;;+-------------------------------------------------------------------------------------+
+;; I don't want TAB on C-i, nor RET on C-m. (Who would?)
 ;; It won't work to unmap them normally, because emacs sees RET == C-m etc.
-;; Instead I bind C-i to C-1, and C-m to C-2, and should use C-1 and C-2 to bind to C-i and C-m
+;; Instead, I bind raw C-i input to new event <C-i>. Same with C-m
 (defun taylor-gl/remap-C-i-and-C-m ()
-  "Remove TAB from C-i and RET from C-m."
-  (interactive)
-  (general-define-key
-   :keymaps 'input-decode-map
-   "C-i" "C-1"
-   "C-m" "C-2"
-   "M-i" "M-1"
-   "M-m" "M-2"
-   "C-M-i" "C-M-1"
-   "C-M-m" "C-M-2"
-   "H-C-i" "H-C-1"
-   "H-C-M-i" "H-C-M-1"
-   )
-  )
+  "Remove TAB from C-i and RET from C-m in TERMINAL."
+  (define-key input-decode-map (kbd "C-i") (kbd "<C-i>"))
+  (define-key input-decode-map (kbd "C-m") (kbd "<C-m>"))
+  (define-key input-decode-map (kbd "M-i") (kbd "<M-i>"))
+  (define-key input-decode-map (kbd "M-m") (kbd "<M-m>"))
+  (define-key input-decode-map (kbd "C-M-i") (kbd "<C-M-i>"))
+  (define-key input-decode-map (kbd "C-M-m") (kbd "<C-M-m>"))
+  (define-key input-decode-map (kbd "H-C-i") (kbd "<H-C-i>"))
+  (define-key input-decode-map (kbd "H-C-m") (kbd "<H-C-m>"))
+  (define-key input-decode-map (kbd "H-C-M-i") (kbd "<H-C-M-i>"))
+  (define-key input-decode-map (kbd "H-C-M-m") (kbd "<H-C-M-m>")))
 
-;; This is added to after-make-frame-functions because each frame gets its own input-decode-map
-(defun taylor-gl/make-frame-remap-C-i-and-C-m (frame)
-  "A function for after-make-frame-functions which removes TAB from C-i and RET from C-m."
-  (taylor-gl/remap-C-i-and-C-m)
-  )
-(add-to-list 'after-make-frame-functions #'taylor-gl/make-frame-remap-C-i-and-C-m)
-
-;; Functions I want to call whenever I run emacsclient
-;; I have to run taylor-gl/remap-C-i-and-C-m here because it isn't run on the initial emacsclient if there is no emacs daemon running otherwise
-(defun taylor-gl/emacsclient ()
-  (taylor-gl/remap-C-i-and-C-m)
-  )
+;; Each daemon frame gets a fresh `input-decode-map', hence the hook; without the
+;; daemon that hook never fires at all, hence the direct call.
+(add-hook 'server-after-make-frame-hook #'taylor-gl/remap-C-i-and-C-m)
+(taylor-gl/remap-C-i-and-C-m)
 
 ;; I want my basic movement keys on hnei (I use colemak), therefore:
 ;; Swap C-b and C-h etc.
@@ -133,8 +151,7 @@
  "C-b" help-map
  "C-b C-b" 'help-for-help
  "M-h" 'backward-word
- "M-b" 'mark-paragraph
- )
+ "M-b" 'mark-paragraph)
 
 ;; Swap C-p and C-e etc.
 ;; (mnemonic: C-p moves Past the line)
@@ -146,18 +163,18 @@
  "M-e" nil
  "M-p" 'forward-sentence
  "C-M-p" 'end-of-defun
- "C-M-e" 'backward-list
- )
+ "C-M-e" 'backward-list)
 
 ;; Move C-f to C-i, and just leave C-f unbound
-;; (Remember that I've bound C-1 to C-i)
 (general-define-key
- "C-1" 'forward-char
- "M-1" 'forward-word
+ (kbd "<C-i>") 'forward-char
+ (kbd "<tab>") 'indent-for-tab-command
+ (kbd "<M-i>") 'forward-word
  "C-f" nil
  "M-f" nil
- "C-M-f" nil
- )
+ "C-M-f" nil)
+
+(general-define-key "C-/" nil)
 
 ;; Don't require pressing escape three (3!) times to exit
 (general-define-key "<escape>" 'keyboard-escape-quit)
@@ -170,61 +187,341 @@
 
 ;; Other global keybindings
 (general-define-key
- "M-n" 'forward-paragraph
- "M-e" 'backward-paragraph
- "M-2" 'back-to-indentation ;; Remember M-2 is actually M-m
- "C-s" 'save-buffer ;; Moving saving to C-s to be consistent with other applications a la cua-mode
+ "M-n" 'scroll-up
+ "H-M-n" 'next-history-element
+ "H-M-e" 'previous-history-element
+ "M-e" 'scroll-down
+ "<M-m>" 'back-to-indentation
+ ;; Moving saving to C-s to be consistent with other applications a la cua-mode
+ "C-s" 'taylor-gl/save-buffer
+ [remap save-buffer] 'taylor-gl/save-buffer ;; so C-x C-s behaves the same
  "C-y" nil ;; moved to C-v with cua-mode
  "C-w" nil ;; moved to C-v with cua-mode
  "C-S-s" 'write-file ;; "Save as..."
  "H-." 'kmacro-end-and-call-macro
- "H-SPC" 'set-mark-command
- "H-q" 'kill-this-buffer
- "H-w" 'delete-trailing-whitespace
+ "H-," 'set-mark-command
+ "C-c <return>" 'vterm
+ "C-c p <return>" 'projectile-run-vterm
+ "H-a" 'previous-buffer
+ "H-p" 'next-buffer
+ "H-o" 'other-window
+ "H-q" 'kill-current-buffer
  "H-m" 'exchange-point-and-mark
- "C-b C-2" 'describe-keymap ;; C-2 is C-m
- )
+ "C-M-d" 'backward-kill-word
+ "C-b <C-m>" 'describe-keymap ;; built in since Emacs 28
+ "H-k" 'crux-kill-whole-line ;; C-S-backspace was awkward on my keyboard
+ "C-k" 'crux-smart-kill-line
+ "C-o" 'crux-smart-open-line
+ "C-S-o" 'crux-smart-open-line-above
+ "C-t" 'pop-global-mark ;; C-t was transpose-chars, but I only ever activated it by accident. Now it's C-t for "teleport"
+ "C-c f u i f" 'taylor-gl/find-user-init-file)
 
 
-;;+----------------------------------------------------------------------------------------+
-;;|                                                                                        |
-;;|   PACKAGES                                                                             |
-;;|                                                                                        |
-;;+----------------------------------------------------------------------------------------+
-;; Setup ag (for use with projectile-ag)
-(use-package ag
+;;+-------------------------------------------------------------------------------------+
+;;|                                                                                     |
+;;|   COLEMAK MOTION LAYER                                                              |
+;;|                                                                                     |
+;;+-------------------------------------------------------------------------------------+
+(cl-defun taylor-gl/colemak-motion
+    (keymaps &key package back forward prev next end unbind also-control)
+  "Apply my Colemak motion layer to KEYMAPS.
+
+BACK, FORWARD, PREV, NEXT and END name the command bound to h, i, e, n and p
+respectively.  Any role left out is not bound at all.
+
+UNBIND is a list of keys to clear -- the QWERTY keys this layer displaces.
+ALSO-CONTROL mirrors every binding onto its C- prefixed twin.
+PACKAGE defers everything until that feature loads, so this can be called for
+keymaps that do not exist yet."
+  (let* ((roles `(("h" . ,back) ("i" . ,forward) ("e" . ,prev)
+                  ("n" . ,next) ("p" . ,end)))
+         (bindings
+          (cl-loop for (key . cmd) in roles
+                   when cmd
+                   append (if also-control
+                              (list key cmd (concat "C-" key) cmd)
+                            (list key cmd))))
+         (clears (cl-loop for key in unbind append (list key nil))))
+    (apply #'general-define-key
+           :keymaps keymaps
+           (append (when package (list :package package))
+                   bindings
+                   clears))))
+
+;; Every per-mode motion override lives here; non-motion bindings stay in their
+;; own package's `:general' block.
+(taylor-gl/colemak-motion 'dired-mode-map :package 'dired
+                          :prev #'dired-previous-line
+                          :unbind '("h" "p"))
+
+(taylor-gl/colemak-motion 'Info-mode-map :package 'info
+                          :back #'beginning-of-buffer
+                          :prev #'Info-prev
+                          :end #'end-of-buffer)
+
+(taylor-gl/colemak-motion 'magit-mode-map :package 'magit
+                          :prev #'magit-section-backward)
+
+(taylor-gl/colemak-motion 'git-rebase-mode-map :package 'git-rebase
+                          :prev #'git-rebase-backward-line
+                          :unbind '("h" "p"))
+
+(taylor-gl/colemak-motion 'ivy-occur-mode-map :package 'ivy
+                          :prev #'ivy-occur-previous-line
+                          :next #'ivy-occur-next-line
+                          :unbind '("j" "k"))
+
+(taylor-gl/colemak-motion 'ivy-occur-grep-mode-map :package 'ivy
+                          :forward #'forward-char
+                          :prev #'ivy-occur-previous-line
+                          :next #'ivy-occur-next-line
+                          :unbind '("j" "k" "l"))
+
+(taylor-gl/colemak-motion 'vundo-mode-map :package 'vundo
+                          :back #'vundo-backward
+                          :forward #'vundo-forward
+                          :prev #'vundo-previous
+                          :next #'vundo-next
+                          :unbind '("b" "f"))
+
+(taylor-gl/colemak-motion 'which-key-C-h-map :package 'which-key
+                          :prev #'which-key-show-previous-page-cycle
+                          :also-control t
+                          :unbind '("p"))
+
+
+;;+-------------------------------------------------------------------------------------+
+;;|                                                                                     |
+;;|   WINDOW MANAGEMENT                                                                 |
+;;|                                                                                     |
+;;+-------------------------------------------------------------------------------------+
+;; I used to use the Shackle package, but it sucked, and the vanilla way is better
+;; Inspired by https://www.masteringemacs.org/article/demystifying-emacs-window-manager
+(setq
+ ;; Maximum number of side-windows to create on (left top right bottom)
+ window-sides-slots '(0 0 1 1)
+ ;; Apply display-buffer-alist rules to manual buffer switching. Also prevents misbehaved packages from
+ ;; getting around display-buffer-alist rules by calling switch-to-buffer instead of display-buffer.
+ switch-to-buffer-obey-display-actions t
+ ;; Automatically select help buffers when they open
+ help-window-select t)
+
+;; Stop escape from closing other windows
+(define-advice keyboard-escape-quit
+    (:around (fn &rest args) taylor-gl/dont-close-windows)
+  "Run FN with ARGS, but neutered so it can't delete my other windows."
+  (let ((buffer-quit-function #'ignore))
+    (apply fn args)))
+
+(defun taylor-gl/major-mode-matcher (modes)
+  "Return a `display-buffer' condition matching buffers derived from MODES."
+  (lambda (buffer-name _action)
+    (with-current-buffer buffer-name
+      (apply #'derived-mode-p modes))))
+
+(defun taylor-gl/command-matcher (commands)
+  "Return a `display-buffer' condition matching when `this-command' is in COMMANDS."
+  (lambda (&rest _)
+    (memq this-command commands)))
+
+(setq display-buffer-alist
+      `(;; Display terminals in a right side-window
+        (,(taylor-gl/major-mode-matcher
+           '(term-mode vterm-mode shell-mode eshell-mode))
+         (display-buffer-in-side-window)
+         (side . right)
+         (slot . 1)
+         (window-parameters . ((no-delete-other-windows . t)))
+         (window-width . 0.3))
+        ;; Display ephemeral help/info/etc. buffers in a bottom side-window
+        (,(taylor-gl/major-mode-matcher
+           '(rg-mode apropos-mode compilation-mode debugger-mode grep-mode
+                     help-mode Info-mode Man-mode messages-buffer-mode
+                     reb-mode woman-mode))
+         (display-buffer-in-side-window)
+         (side . bottom)
+         (slot . 0))
+        (,(rx "*Register Preview*")
+         (display-buffer-in-side-window)
+         (side . bottom)
+         (slot . 0))
+        ;; Buffers being opened by links in e.g. ag-mode
+        (,(taylor-gl/command-matcher '(compile-goto-error))
+         (display-buffer-reuse-window
+          display-buffer-use-some-window))
+        ;; vundo asks for this itself, but an ACTION passed to `display-buffer' is
+        ;; outranked by this alist, so the ".*" fallback swallows it.  Anything
+        ;; else that passes its own action needs an entry here too.
+        (,(rx bos " *vundo tree*" eos)
+         (display-buffer-in-side-window)
+         (side . bottom)
+         (slot . 0)
+         (window-height . 3))
+        ;; Default settings for all other buffers
+        (".*"
+         (display-buffer-same-window))))
+
+
+;;+-------------------------------------------------------------------------------------+
+;;|                                                                                     |
+;;|   PACKAGES                                                                          |
+;;|                                                                                     |
+;;+-------------------------------------------------------------------------------------+
+;; Provides `rg', which `projectile-ripgrep' (C-c p s r) calls into
+(use-package rg
   :after projectile)
+
+(use-package apheleia
+  :demand
+  :general
+  ("C-c =" #'apheleia-format-buffer
+   "C-c +" #'indent-region)
+  :config
+  ;; Mostly apheleia's own defaults, restated so a version bump can't silently
+  ;; stop formatting my TypeScript.
+  (dolist (entry '((typescript-ts-mode . prettier-typescript)
+                   (tsx-ts-mode        . prettier-typescript)
+                   (js-ts-mode         . prettier-javascript)
+                   (json-ts-mode       . prettier-json)
+                   (css-ts-mode        . prettier-css)
+                   (web-mode           . prettier)
+                   ;; No markdown entry on purpose: prose is not code
+                   (elixir-ts-mode     . mix-format)))
+    (setf (alist-get (car entry) apheleia-mode-alist) (cdr entry)))
+  (apheleia-global-mode +1))
+
+;; Format on the saves I ask for, never on the ones `auto-save-visited-mode'
+;; makes every five seconds.  Gating `after-save-hook' is not enough: after a
+;; timer save the buffer is unmodified, so `save-buffer' is a no-op and the hook
+;; never runs -- which is why the save command drives formatting itself.
+(defvar taylor-gl/apheleia-explicit-save nil
+  "Non-nil while a save I actually asked for is running.")
+
+(define-advice apheleia-format-after-save
+    (:around (fn &rest args) taylor-gl/only-on-explicit-save)
+  "Run FN with ARGS only for saves I asked for, not for auto-saves."
+  (when taylor-gl/apheleia-explicit-save
+    (apply fn args)))
+
+(defun taylor-gl/save-buffer ()
+  "Save the buffer, then reformat it with apheleia.
+Formatting runs here rather than on `after-save-hook' so that it happens even
+when the buffer is unmodified, and so that it starts after `ws-butler' has
+restored the trailing newline -- a buffer change while apheleia's async job is
+in flight makes apheleia discard the reformat."
+  (interactive)
+  (let ((formattable (and (bound-and-true-p apheleia-mode)
+                          (not (buffer-narrowed-p))
+                          (apheleia--get-formatters))))
+    (cond
+     ((buffer-modified-p) (save-buffer))
+     ;; Nothing to write and nothing to format: let `save-buffer' say so.
+     ((not formattable) (save-buffer)))
+    (when formattable
+      (let ((taylor-gl/apheleia-explicit-save t))
+        (apheleia-format-after-save)))))
+
+;; Saving a file that doesn't parse yet is normal, and apheleia announces it
+;; from a bare `message' in a process sentinel with no way to turn it off.
+;; *Messages* and the formatter's log buffer still get it.
+(defun taylor-gl/apheleia-failure-message-p (fmt args)
+  "Non-nil if FMT and ARGS are apheleia's \"formatter failed\" message."
+  (let ((s (cond ((and (equal fmt "%s") (stringp (car args))) (car args))
+                 ((stringp fmt) fmt))))
+    (and s
+         (string-prefix-p "Failed to run " s)
+         (string-search "apheleia" s))))
+
+(define-advice message
+    (:around (fn &optional fmt &rest args) taylor-gl/quiet-apheleia-failures)
+  "Call FN with FMT and ARGS, muting apheleia's formatter-failed message."
+  (if (taylor-gl/apheleia-failure-message-p fmt args)
+      (let ((inhibit-message t))
+        (apply fn fmt args))
+    (apply fn fmt args)))
 
 (use-package beacon
   :demand
   :init
-  (setq beacon-color "#68af9c"
-        beacon-blink-when-focused t)
+  (setq beacon-blink-when-focused t)
   :config
   (beacon-mode 1))
 
-(use-package company
+(use-package calc
+  :straight (:type built-in)
+  :config
+  (setq calc-display-trail nil))
+
+(use-package cape
+  :demand
+  :after corfu
+  :init
+  (add-hook 'completion-at-point-functions #'cape-dabbrev)
+  (add-hook 'completion-at-point-functions #'cape-file)
+  :config
+  (setq cape-dabbrev-min-length 2))
+
+(use-package corfu
   :demand
   :general
-  ("M-/" #'company-complete)
-  (:keymaps 'company-active-map
-            "RET" 'nil
-            "<return>" 'nil
-            "M-/" #'company-complete-selection
-            "C-p" nil
-            "C-e" #'company-select-previous-or-abort
-            "C-h" nil
-            "C-b" #'company-show-doc-buffer
-            "<escape>" #'company-abort
-            )
+  ("M-/" #'completion-at-point)
+  (:keymaps 'corfu-map
+            ;; RET and TAB keep doing their normal buffer job while the popup is
+            ;; open; M-/ is the only key that commits a completion.
+            "RET" nil
+            "<return>" nil
+            "TAB" nil
+            "<tab>" nil
+            ;; Arrows move point and nothing else.  Takes two unbindings:
+            ;; corfu-map binds the arrows literally AND remaps
+            ;; `next-line'/`previous-line', so clearing the literal keys alone
+            ;; leaves them falling through and getting remapped straight back in.
+            "<up>" nil
+            "<down>" nil
+            [remap next-line] nil
+            [remap previous-line] nil
+            ;; M-p is forward-sentence here, so corfu doesn't get it either.
+            "M-p" nil
+            ;; With the remaps gone, the four popup-motion keys are bound by
+            ;; hand.  These are the only keys that move the selection.
+            "C-n" #'corfu-next
+            "C-e" #'corfu-previous
+            "M-n" #'corfu-next
+            "M-e" #'corfu-previous
+            ;; corfu puts its doc buffer on M-h, but M-h is backward-word here.
+            "M-h" nil
+            "M-/" #'corfu-insert
+            "C-b" #'corfu-info-documentation
+            "<escape>" #'corfu-quit)
   :custom
-  (company-backends '((company-yasnippet)))
-  (company-idle-delay 0.0) ;; some people use 0.1 as "instant", but that is visibly non-instant
-  (company-require-match 'never)
-  (company-tooltip-align-annotations t)
-  (company-format-margin-function #'company-dot-icons-margin)
-  (global-company-mode t)
-  )
+  (corfu-auto t)
+  (corfu-auto-delay 0.0)
+  (corfu-auto-prefix 2)
+  (corfu-cycle t)
+  (corfu-quit-no-match t)
+  ;; The default, `insert', commits a lone exact match on its own.  For an LSP
+  ;; candidate that applies the server's textEdit, which carries its own
+  ;; replacement range and so eats characters I already typed.
+  (corfu-on-exact-match nil)
+  ;; The default previews the selection as real buffer text rather than an
+  ;; overlay, so merely moving the selection rewrites the file.
+  (corfu-preview-current nil)
+  :config
+  ;; corfu-info-documentation lives in an extension, not in corfu proper.
+  (require 'corfu-info)
+  (global-corfu-mode))
+
+;; A coloured badge in the corfu margin showing each candidate's kind
+(use-package kind-icon
+  :demand
+  :after corfu
+  :init
+  ;; Icons are SVGs, fetched once by svg-lib and then cached on disk
+  (setq svg-lib-icons-dir (expand-file-name "svg-lib/" user-emacs-directory)
+        kind-icon-default-face 'corfu-default ;; blend the badge into the popup
+        kind-icon-blend-background nil)
+  :config
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package counsel ;; includes ivy and swiper
   :demand
@@ -249,37 +546,32 @@
    [remap yank-pop] 'counsel-yank-pop
    "C-f" 'swiper ;; C-f for swiper mimics keybindings for other applications
    "C-c C-r" 'ivy-resume
-   "H-C-f" 'counsel-find-file
-   )
-  (:Keymaps 'minibuffer-local-map
-            "C-r" 'counsel-minibuffer-history)
+   "H-M-f" 'counsel-find-file)
+  ;; I kept hitting counsel-minibuffer-history by accident, so it's gone.
+  (:keymaps 'minibuffer-local-map
+            "C-r" nil)
   (:keymaps 'ivy-minibuffer-map
             "M-e" 'ivy-previous-history-element)
-  (:keymaps 'ivy-occur-mode-map
-            "j" nil
-            "k" nil
-            "n" 'ivy-occur-next-line
-            "e" 'ivy-occur-previous-line)
-  (:keymaps 'ivy-occur-grep-mode-map
-            "j" nil
-            "k" nil
-            "l" nil
-            "n" 'ivy-occur-next-line
-            "e" 'ivy-occur-previous-line
-            "i" 'forward-char)
   :config
   (ivy-mode 1)
-  (setq ivy-use-virtual-buffers t)
-  (setq ivy-count-format "(%d) ")
-  (setq counsel-find-file-ignore-regexp "\\(?:^[#.]\\)\\|\\(?:[#~]$\\)\\|\\(?:^Icon?\\)") ;; hide certain files; taken from doom emacs
-  )
+  (setq ivy-use-virtual-buffers t
+        ivy-count-format "(%d) "
+        ;; hide certain files; taken from doom emacs
+        counsel-find-file-ignore-regexp "\\(?:^[#.]\\)\\|\\(?:[#~]$\\)\\|\\(?:^Icon?\\)"))
+
+;; counsel-projectile adds alternative actions besides the default actions of e.g. opening a file for
+;; projectile commands, but I mostly just use it for counsel-projectile-rg, which uses ivy instead of
+;; an rg-mode buffer for searching in the current project.
+(use-package counsel-projectile
+  :after (counsel projectile)
+  :demand
+  :general
+  ("H-/" 'counsel-projectile-rg))
 
 (use-package crux
   :demand t
   :general
-  ("H-b" 'crux-switch-to-previous-buffer
-   "M-o" 'crux-kill-line-backwards
-   )
+  ("M-o" 'crux-kill-line-backwards)
   :config
   (crux-reopen-as-root-mode t))
 
@@ -289,12 +581,30 @@
 ;; Common User Access standard.)
 (use-package cua-base
   :straight (:type built-in)
+  :general
+  ("C-S-v" 'taylor-gl/paste-from-primary)
   :init (cua-mode t)
   :config
   (setq cua-auto-tabify-rectangles nil) ;; Don't tabify after rectangle commands
   (transient-mark-mode 1) ;; No region when it is not highlighted
-  (setq cua-keep-region-after-copy t) ;; Standard Windows behaviour
-  )
+  (setq cua-keep-region-after-copy t)) ;; Standard Windows behaviour
+
+;; For now, docs must manually be installed with devdocs-install
+(use-package devdocs
+  :demand t
+  :general
+  ("C-c C-d" 'devdocs-lookup))
+
+(use-package diff-hl
+  :demand
+  :ghook
+  ('magit-pre-refresh-hook #'diff-hl-magit-pre-refresh)
+  ('magit-post-refresh-hook #'diff-hl-magit-post-refresh)
+  :config
+  (setq-default fringes-outside-margins t)
+  (setq diff-hl-draw-borders nil) ;; solid bars
+  (global-diff-hl-mode)
+  (diff-hl-flydiff-mode)) ;; update as you type, not only on save
 
 (use-package dired
   :straight (:type built-in)
@@ -302,29 +612,24 @@
   :general
   (:keymaps 'dired-mode-map
             "b" 'describe-mode
-            "e" 'dired-previous-line
-            "h" nil
-            "p" nil
             "C-M-p" nil
             "C-M-e" 'dired-prev-subdir
             "* C-p" nil
-            "* C-e" 'dired-prev-marked-file
-            )
+            "* C-e" 'dired-prev-marked-file)
   :config
-  (setq dired-dwim-target t
+  (setq dired-listing-switches "-alh" ;; h == human-readable file sizes
+        dired-dwim-target t
         find-file-visit-truename t
         dired-ls-F-marks-symlinks t
         dired-auto-revert-buffer t
         dired-recursive-deletes 'always
-        dired-recursive-copies 'always)
-  )
+        dired-recursive-copies 'always))
 
 (use-package dired-x
   :after dired
   :straight (:type built-in)
   :ghook ('dired-mode-hook #'dired-omit-mode)
   :config
-  (dired-omit-mode t)
   (setq dired-guess-shell-alist-user '(("\\.\\(?:pdf\\|djvu\\|eps\\)\\'" "evince")
                                        ("\\.\\(?:doc\\|docx\\|odt\\)\\'" "libreoffice")
                                        ("\\.\\(?:jpe?g\\|png\\|gif\\|xpm\\)\\'" "feh")
@@ -335,48 +640,102 @@
                                        ("\\.\\(?:mp3\\|flac\\)\\'" "xdg-open")
                                        ("\\.html?\\'" "xdg-open")
                                        ("\\.md\\'" "xdg-open")))
-  (setq dired-omit-files "\\(?:^[#.]\\)\\|\\(?:[#~]$\\)\\|\\(?:^Icon?\\)") ;; hide certain files
-  )
+  (setq dired-omit-files "\\(?:^[#.]\\)\\|\\(?:[#~]$\\)\\|\\(?:^Icon?\\)")) ;; hide certain files
 
-;; Setup doom-modeline from doom emacs
-(use-package doom-modeline
-  :ghook 'after-init-hook
-  :init
-  (setq doom-modeline-enable-word-count t)
-  (setq doom-modeline-icon t)
-  (setq doom-modeline-buffer-modification-icon nil)
+(use-package mood-line
+  :demand
+  :straight (:host github :repo "jessiehildebrandt/mood-line" :type git)
   :config
-  ;; Show column number in doom-modeline
-  (column-number-mode)
-  )
+  (mood-line-mode))
 
-;; Setup doom-themes from doom themes (I use a custom pastel theme)
+;; Time of day emacs theme changer
+;; From https://yannesposito.com/posts/0014-change-emacs-theme-automatically/index.html
+;;
+;; Burning Sun ships as two generated doom themes (see dotfiles/theme/). The
+;; boundaries match the cron entries that switch i3, kitty, rofi and helix, so
+;; the whole desktop turns over at the same moment.
+(add-to-list 'custom-theme-load-path
+             (expand-file-name "~/Dropbox/dotfiles/emacs/themes/"))
+
+(defvar taylor-gl/theme nil
+  "The doom theme currently loaded by `taylor-gl/auto-update-theme'.")
+
+(defconst taylor-gl/light-theme-start 7.5
+  "Hour at which the paper theme takes over. Matches crontab.")
+
+(defconst taylor-gl/dark-theme-start 22.0
+  "Hour at which the dark theme takes over. Matches crontab.")
+
+(defconst taylor-gl/theme-state-file
+  (expand-file-name "burning-sun/variant"
+                    (or (getenv "XDG_CACHE_HOME") "~/.cache"))
+  "File holding the desktop's current Burning Sun variant.
+Written by switch-to-{dark,light}-theme.sh, which cron and the bar's theme
+button both run. Emacs follows it rather than deciding for itself, so a
+mid-afternoon click on the button does not get argued with by the clock.")
+
+(defun taylor-gl/desired-variant ()
+  "Return `dark' or `paper'.
+The state file is authoritative; the clock is only a fallback for a machine
+where the switch scripts have never run."
+  (or (ignore-errors
+        (with-temp-buffer
+          (insert-file-contents taylor-gl/theme-state-file)
+          (let ((v (string-trim (buffer-string))))
+            (cond ((equal v "dark") 'dark)
+                  ((equal v "paper") 'paper)))))
+      (let* ((now (decode-time (current-time)))
+             (clock (+ (nth 2 now) (/ (nth 1 now) 60.0))))
+        (if (and (>= clock taylor-gl/light-theme-start)
+                 (< clock taylor-gl/dark-theme-start))
+            'paper
+          'dark))))
+
+(defun taylor-gl/auto-update-theme ()
+  "Load whichever Burning Sun variant the desktop is currently on.
+Called at startup, on a timer as a self-heal, and by the switch scripts over
+emacsclient so the button restyles emacs along with everything else."
+  (interactive)
+  (let ((theme (if (eq (taylor-gl/desired-variant) 'paper)
+                   'burning-sun-paper
+                 'burning-sun-dark)))
+    (unless (eq theme taylor-gl/theme)
+      ;; load-theme stacks rather than replaces, so the outgoing theme has to
+      ;; be disabled explicitly or its faces bleed through the new one.
+      (mapc #'disable-theme custom-enabled-themes)
+      (load-theme theme t)
+      (setq taylor-gl/theme theme)))
+  ;; Re-check at the next boundary in case emacs was asleep when cron fired.
+  (let* ((now (decode-time (current-time)))
+         (clock (+ (nth 2 now) (/ (nth 1 now) 60.0)))
+         (next (if (and (>= clock taylor-gl/light-theme-start)
+                        (< clock taylor-gl/dark-theme-start))
+                   taylor-gl/dark-theme-start
+                 taylor-gl/light-theme-start))
+         (hh (floor next))
+         (mm (round (* 60 (- next hh)))))
+    (run-at-time (format "%02d:%02d" hh mm) nil #'taylor-gl/auto-update-theme)))
+
+;; doom-themes supplies the face scaffolding; the Burning Sun themes are
+;; generated on top of it (see dotfiles/theme/).
 (use-package doom-themes
   :demand
-  :custom-face
-  (org-headline-done ((t (:foreground "#efc7e9")))) ;; light pink
-  ;; change ugly org-level-1 etc. color choices
-  (outline-1 ((t (:foreground "#ec3b82" )))) ;; cerise
-  (outline-2 ((t (:foreground "#fa611f")))) ;; dark-orange
-  (outline-3 ((t (:foreground "#ff9933")))) ;; light-orange
-  (outline-4 ((t (:foreground "#fa611f")))) ;; dark-orange
-  (outline-5 ((t (:foreground "#ff9933")))) ;; light-orange
-  (outline-6 ((t (:foreground "#fa611f")))) ;; dark-orange
-  (outline-7 ((t (:foreground "#ff9933")))) ;; light-orange
-  (outline-8 ((t (:foreground "#fa611f")))) ;; dark-orange
   :config
   (setq doom-themes-enable-bold t
         doom-themes-enable-italic t
-        pastel-brighter-comments t
-        pastel-padded-modeline t)
-  (load-theme 'pastel t)
+        burning-sun-dark-padded-modeline t
+        burning-sun-paper-padded-modeline t)
+  ;; The ansi-color faces (and the shell-mode colour bug that used to be
+  ;; worked around here) are defined by the Burning Sun themes directly,
+  ;; so they follow the scheme instead of doom-color lookups.
   (doom-themes-visual-bell-config)
-  (doom-themes-org-config))
+  (taylor-gl/auto-update-theme))
 
 (defun taylor-gl/transpose-paragraphs-backward ()
+  "Transpose this paragraph with the previous one."
   (interactive "*")
-  (transpose-paragraphs -1)
-  )
+  (transpose-paragraphs -1))
+
 (use-package drag-stuff
   :demand
   :general
@@ -384,73 +743,45 @@
             "H-e" 'drag-stuff-up
             "H-n" 'drag-stuff-down
             "H-C-n" 'transpose-paragraphs
-            "H-C-e" 'taylor-gl/transpose-paragraphs-backward
-            )
+            "H-C-e" 'taylor-gl/transpose-paragraphs-backward)
   :config
-  (drag-stuff-global-mode 1)
-  )
+  (drag-stuff-global-mode 1))
 
 (use-package dot-mode
   :demand
   :config
-  (global-dot-mode t)
-  )
+  (global-dot-mode t))
 
-(use-package dumb-jump
+;; Copy environment variables from shell to emacs
+;; Should help with some commands not working in emacs
+(use-package exec-path-from-shell
   :demand
   :config
-  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
-  (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
-  )
+  (when (or (memq window-system '(mac ns x)) (daemonp))
+    (exec-path-from-shell-initialize)))
 
-(use-package expand-region
+(defun taylor-gl/mark-symbol ()
+  "Mark the symbol at point."
+  (interactive)
+  (if-let* ((bounds (bounds-of-thing-at-point 'symbol)))
+      (progn
+        (push-mark (car bounds) nil t)
+        (goto-char (cdr bounds)))
+    (user-error "No symbol at point")))
+
+(general-define-key "H-@" #'taylor-gl/mark-symbol)
+
+;; Grows the region one syntactic step at a time, off the tree-sitter parse,
+;; falling back to sexp/string/line where there is no grammar
+(use-package expreg
   :demand
   :general
-  ("H-x" 'er/expand-region)
-  )
+  ("H-x" #'expreg-expand
+   "H-X" #'expreg-contract))
 
-(use-package fira-code-mode
-  :custom (fira-code-mode-disabled-ligatures '("[]" "x" "<>" "#{" "#(", "{-"))  ; ligatures I don't want
-  :config (fira-code-mode-set-font)
-  :ghook ('(prog-mode-hook org-mode-hook))
-  )
-
-(use-package format-all
-  :init
-  :demand
-  :ghook ('format-all-mode-hook #'format-all-ensure-formatter)
+(use-package goto-chg
   :general
-  ("C-c =" 'format-all-buffer
-   "C-c +" 'format-all-region)
-  )
-
-(use-package git-gutter
-  :demand t
-  :init
-  :config
-  (global-git-gutter-mode t)
-  (setq git-gutter:disabled-modes '(org-mode fundamental-mode image-mode pdf-view-mode))
-  :custom
-  (git-gutter:update-interval 1)
-  )
-
-(use-package git-gutter-fringe
-  :demand t
-  :after git-gutter
-  :config
-  (setq-default fringes-outside-margins t)
-  ;; thin fringe bitmaps
-  (define-fringe-bitmap 'git-gutter-fr:added [224]
-    nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:modified [224]
-    nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240]
-    nil nil 'bottom)
-  )
-
-;; Add extra help functions like describe-keymap
-(use-package help-fns+
-  :demand)
+  ("H-z" 'goto-last-change))
 
 ;; Highlight quoted symbols in elisp
 (use-package highlight-quoted
@@ -459,241 +790,117 @@
 
 (use-package hl-todo
   :demand
-  :ghook ('org-mode-hook #'hl-todo-mode)
-  :general (
-            "C-c t n" #'hl-todo-next
-            "C-c t e" #'hl-todo-previous
-            )
+  :general
+  ("C-c t n" #'hl-todo-next
+   "C-c t e" #'hl-todo-previous)
   :config
   (global-hl-todo-mode 1)
+  ;; The four gruvbox tiers these used to carry were already an urgency ramp,
+  ;; so they map cleanly onto ember -> grey: the loudest keywords burn, and
+  ;; the settled ones recede into the page. Values follow the loaded theme.
   (setq hl-todo-keyword-faces
-        '(("FIXME"   . "#fb4932")
-          ("GOTCHA"  . "#fb4932")
-          ("TODO" . "#fb4932")
-          ("TODOS" . "#fb4932")
-          ("XXX"  . "#fb4932")
-          ("DEBUG"  . "#fe8019")
-          ("INPROGRESS"  . "#fe8019")
-          ("REVIEW"  . "#fe8019")
-          ("WAITING"  . "#fe8019")
-          ("STUB"   . "#fabd2f")
-          ("MAYBE"  . "#fabd2f")
-          ("SHOULD"  . "#fabd2f")
-          ("HACK"  . "#b8bb26")
-          ("NOTE"  . "#b8bb26")
-          ("ABANDONED"  . "#a89984")
-          ("DEPRECATED"  . "#a89984")
-          ("DONE"  . "#a89984")
-          )))
+        (let ((burn  (face-attribute 'error :foreground nil t))          ; ember
+              (warm  (face-attribute 'font-lock-constant-face :foreground nil t))
+              (cool  (face-attribute 'font-lock-keyword-face :foreground nil t))
+              (quiet (face-attribute 'font-lock-comment-face :foreground nil t)))
+          `(("FIXME"       . ,burn)
+            ("GOTCHA"      . ,burn)
+            ("TODO"        . ,burn)
+            ("TODOs"       . ,burn)
+            ("XXX"         . ,burn)
+            ("DEBUG"       . ,warm)
+            ("INPROGRESS"  . ,warm)
+            ("REVIEW"      . ,warm)
+            ("SHOULD"      . ,warm)
+            ("WAITING"     . ,warm)
+            ("STUB"        . ,warm)
+            ("MAYBE"       . ,cool)
+            ("HACK"        . ,cool)
+            ("NOTE"        . ,cool)
+            ("ANSWER"      . ,cool)
+            ("ABANDONED"   . ,quiet)
+            ("DEPRECATED"  . ,quiet)
+            ("DONE"        . ,quiet)))))
 
-(use-package Info
+(use-package info
   :straight (:type built-in)
   :general
   (:keymaps 'Info-mode-map
             "b" 'Info-help
-            "e" 'Info-prev
-            "h" 'beginning-of-buffer
-            "p" 'end-of-buffer
-            "B" 'describe-mode)
-  )
+            "B" 'describe-mode))
+
+;; Emacs 28+ composes ligatures directly through Harfbuzz
+(use-package ligature
+  :demand
+  :config
+  (ligature-set-ligatures
+   'prog-mode
+   ;; The standard Fira Code set, minus the ones I never wanted:
+   ;; "<>", "#{", "#(", "..", "[]", "x", "{-", "-}".
+   '("|||>" "<|||" "<==>" "<!--" "####" "~~>" "***" "||=" "||>"
+     ":::" "::=" "=:=" "===" "==>" "=!=" "=>>" "=<<" "=/=" "!=="
+     "!!." ">=>" ">>=" ">>>" ">>-" ">->" "->>" "-->" "---" "-<<"
+     "<~~" "<~>" "<*>" "<||" "<|>" "<$>" "<==" "<=>" "<=<" "<->"
+     "<--" "<-<" "<<=" "<<-" "<<<" "<+>" "</>" "###" "#_(" "..<"
+     "..." "+++" "/==" "///" "_|_" "www" "&&" "^=" "~~" "~@" "~="
+     "~>" "~-" "**" "*>" "*/" "||" "|}" "|]" "|=" "|>" "|-" "{|"
+     "[|" "]#" "::" ":=" ":>" ":<" "$>" "==" "=>" "!=" "!!" ">:"
+     ">=" ">>" ">-" "-~" "-|" "->" "--" "-<" "<~" "<*" "<|" "<:"
+     "<$" "<=" "<-" "<<" "<+" "</" "#[" "#:" "#=" "#!" "##" "#?"
+     "#_" "%%" ".=" ".-" ".?" "+>" "++" "?:" "?=" "?." "??" ";;"
+     "/*" "/=" "/>" "//" "__" "(*" "*)" "\\\\" "://"))
+  (global-ligature-mode t))
+
+(use-package magit
+  :demand
+  :general
+  (:keymaps 'git-rebase-mode-map
+            "M-p" nil
+            "M-e" 'git-rebase-move-line-up)
+  (:keymaps 'magit-mode-map
+            (kbd "<tab>") 'magit-section-toggle
+            "B" 'magit-describe-section
+            "H" 'magit-bisect
+            "p" 'magit-ediff-dwim
+            "M-p" nil
+            "M-e" 'magit-section-backward-sibling)
+  ("H-b" 'magit-blame)
+  :config
+  (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1
+        magit-commit-show-diff nil
+        magit-diff-refine-hunk 'all))
+
+(use-package magit-todos
+  :after magit
+  :ghook ('magit-mode-hook #'magit-todos-mode))
+
+(use-package mixed-pitch
+  :ghook 'text-mode-hook)
+
+(use-package olivetti
+  :commands olivetti-mode)
 
 (use-package prescient
   :demand
   :after counsel
   :config
   (prescient-persist-mode 1)
-  (setq prescient-filter-method '(literal regexp initialism))
-  )
+  (setq prescient-filter-method '(literal regexp initialism)))
 
 (use-package ivy-prescient
   :demand
-  :after counsel prescient
+  :after (counsel prescient)
   :config
-  (ivy-prescient-mode 1)
-  )
+  (ivy-prescient-mode 1))
 
 (use-package ivy-rich
-  :diminish
   :demand
   :config
   (ivy-rich-mode 1)
   (setq ivy-rich-path-style 'abbrev))
 
-(use-package magit
-  :demand
-  :general
-  (:keymaps 'git-rebase-mode-map
-            "h" nil
-            "p" nil
-            "e" 'git-rebase-backward-line
-            "M-p" nil
-            "M-e" 'git-rebase-move-line-up)
-  (:keymaps 'magit-mode-map
-            "B" 'magit-describe-section
-            "H" 'magit-bisect
-            "e" 'magit-section-backward
-            "p" 'magit-ediff-dwim
-            "M-p" nil
-            "M-e" 'magit-section-backward-sibling)
-  :config
-  (setq magit-bury-buffer-function #'magit-restore-window-configuration)
-  )
-
-(use-package magit-todos
-  :after magit
-  :ghook ('magit-mode-hook #'magit-todos-mode)
-  )
-
-(use-package mixed-pitch
-  :hook (text-mode . mixed-pitch-mode))
-
-(use-package org
-  :mode ("\\.org\\'" . org-mode)
-  :general
-  ("H-c" 'org-capture)
-  (:keymaps 'org-mode-map
-            "M-b" 'org-transpose-element
-            "C-c SPC" '+org/dwim-at-point
-            "C-c C-b" nil
-            "C-c C-e" nil
-            "C-c C-f" nil
-            "C-c C-h" 'org-backward-heading-same-level
-            "C-c C-1" 'org-forward-heading-same-level
-            "C-c C-e" 'org-previous-visible-heading
-            "C-c C-p" 'org-export-dispatch
-            "C-c M-b" nil
-            "C-c M-f" nil
-            "C-c M-h" 'org-previous-block
-            "C-c M-1" 'org-next-block
-            )
-  (:keymaps 'org-read-date-minibuffer-local-map
-            "M-p" nil
-            "M-e" 'previous-history-element)
-  (:keymaps 'org-read-date-minibuffer-local-map
-            "C-h" (lambda () (interactive) (org-eval-in-calendar '(calendar-backward-day 1)))
-            "C-n" (lambda () (interactive) (org-eval-in-calendar '(calendar-forward-week 1)))
-            "C-e" (lambda () (interactive) (org-eval-in-calendar '(calendar-backward-week 1)))
-            "C-1" (lambda () (interactive) (org-eval-in-calendar '(calendar-forward-day 1)))
-            "C-S-h" (lambda () (interactive) (org-eval-in-calendar '(calendar-backward-month 1)))
-            "C-S-n" (lambda () (interactive) (org-eval-in-calendar '(calendar-forward-year 1)))
-            "C-S-e" (lambda () (interactive) (org-eval-in-calendar '(calendar-backward-year 1)))
-            "C-S-1" (lambda () (interactive) (org-eval-in-calendar '(calendar-forward-month 1)))
-            )
-  (:keymaps 'org-mode-map
-            "M-h" #'backward-word ;; would be org-metaleft but conflicts with backward-word binding
-            "C-M-h" #'org-metaleft
-            "M-n" #'org-metadown
-            "M-e" #'org-metaup
-            "M-1" #'forward-word ;; would be org-metaright but conflicts with forward-word binding
-            "C-M-1" #'org-metaright
-            "M-S-h" #'org-shiftmetaleft
-            "M-S-n" #'org-shiftmetadown
-            "M-S-e" #'org-shiftmetaup
-            "M-S-1" #'org-shiftmetaright
-            "M-S-f" #'org-forward-sentence
-            "C-S-h" #'org-shiftcontrolleft
-            "C-S-n" #'org-shiftcontroldown
-            "C-S-e" #'org-shiftcontrolup
-            "C-S-1" #'org-shiftcontrolright
-            )
-  (:keymaps '(org-agenda-mode-map org-agenda-keymap)
-            "e" 'org-agenda-previous-line
-            "p" 'org-agenda-set-effort
-            "E" 'org-agenda-previous-item
-            "P" 'org-agenda-entry-text-mode
-            )
-  :config
-  (auto-fill-mode 0)
-  (general-add-hook 'org-mode-hook #'taylor-gl/ligatures-mode)
-  (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
-  (setq org-ellipsis " ▼"
-        org-directory "~/Dropbox/emacs/"
-        org-agenda-files '("~/Dropbox/emacs/todo.org" "~/Dropbox/emacs/reference.org" "~/Dropbox/emacs/work.org")
-        org-agenda-span 'month ;; show one month of agenda at a time
-        org-link-shell-confirm-function nil ;; don't annoy me by asking for confirmation
-        ;; don't show DONE items in agenda
-        org-agenda-skip-scheduled-if-done t
-        org-agenda-skip-deadline-if-done t
-        org-agenda-use-time-grid nil
-        org-agenda-search-headline-for-time nil
-        org-hide-emphasis-markers t
-        org-startup-indented t
-        org-file-apps '((auto-mode . emacs)
-                        (directory . emacs)
-                        ("\\.mm\\'" . default)
-                        ("\\.x?html?\\'" . default)
-                        ("\\.pdf\\'" . "evince \"%s\"")
-                        ("\\.djvu\\'" . "evince \"%s\"")
-                        ("\\.epub\\'" . "ebook-viewer \"%s\"")
-                        )
-        org-log-into-drawer t ;; log into LOGBOOK drawer
-        org-M-RET-may-split-line nil
-        org-blank-before-new-entry '((heading . nil) (plain-list-item . nil))
-        org-capture-templates
-        '(
-          ("g" "General Inbox" entry (file+headline "~/Dropbox/emacs/todo.org" "General")
-           "* TODO %?" :prepend 1 )
-          ("f" "Finances Inbox" entry (file+headline "~/Dropbox/emacs/todo.org" "Finances")
-           "* TODO %?" :prepend 1 )
-          ("w" "Words Inbox" entry (file+headline "~/Dropbox/emacs/todo.org" "Words")
-           "* %?" :prepend 1 )
-          )
-        org-todo-keywords '((sequence "TODO(t)" "INPROGRESS(i)" "SHOULD(s)" "MAYBE(m)" "NOTE(n)" "WAITING(w)" "NPC(p)" "MET(P)" "|" "DONE(d)" "ABANDONED(a)" ))
-        org-todo-keyword-faces '(
-                                 ("TODO" :foreground "#fb4932" :weight bold)
-                                 ("INPROGRESS" :foreground "#fe8019" :weight bold)
-                                 ("WAITING" :foreground "#fe8019" :weight bold)
-                                 ("SHOULD" :foreground "#fabd2f" :weight bold)
-                                 ("NOTE" :foreground "#b8bb26" :weight bold)
-                                 ("MAYBE" :foreground "#fabd2f" :weight bold)
-                                 ("DONE" :foreground "#a89984" :weight bold)
-                                 ("ABANDONED" :foreground "#928374" :weight bold)
-                                 )
-        calendar-holidays '((holiday-fixed 1 1 "New Year's Day")
-                            (holiday-float 2 1 3 "Family Day")
-                            (holiday-fixed 2 14 "Valentine's Day")
-                            (holiday-fixed 3 17 "St. Patrick's Day")
-                            (holiday-fixed 4 1 "April Fools' Day")
-                            (holiday-easter-etc -2 "Good Friday")
-                            (holiday-easter-etc 0 "Easter")
-                            (holiday-easter-etc 1 "Easter Monday")
-                            (holiday-float 5 0 2 "Mother's Day")
-                            (holiday-float 5 1 -2 "Victoria Day")
-                            (holiday-float 6 0 3 "Father's Day")
-                            (holiday-fixed 7 1 "Canada Day")
-                            (holiday-float 8 1 1 "Civic Holiday")
-                            (holiday-float 9 1 1 "Labour Day")
-                            (holiday-float 10 1 2 "Thanksgiving")
-                            (holiday-fixed 10 31 "Halloween")
-                            (holiday-fixed 11 11 "Remembrance Day")
-                            (holiday-fixed 12 24 "Christmas Eve")
-                            (holiday-fixed 12 25 "Christmas")
-                            (holiday-fixed 12 26 "Boxing Day")
-                            (solar-equinoxes-solstices)
-                            (holiday-sexp calendar-daylight-savings-starts
-                                          (format "Daylight Saving Time Begins %s"
-                                                  (solar-time-string
-                                                   (/ calendar-daylight-savings-starts-time
-                                                      (float 60))
-                                                   calendar-standard-time-zone-name)))
-                            (holiday-sexp calendar-daylight-savings-ends
-                                          (format "Daylight Saving Time Ends %s"
-                                                  (solar-time-string
-                                                   (/ calendar-daylight-savings-ends-time
-                                                      (float 60))
-                                                   calendar-daylight-time-zone-name))))))
-
-(use-package org-bullets
-  :after org
-  :ghook 'org-mode-hook
-  :custom
-  (org-bullets-bullet-list '("◇" "◆" "◉" "●" "○" "●" "○" "●" "○" "●" "○" "●")))
-
-;; Setup org-cliplink to automatically create org links from http links in clipboard
-(use-package org-cliplink)
-
-(use-package rainbow-delimiters
-  :ghook 'prog-mode-hook)
+(use-package jinx
+  :ghook 'text-mode-hook)
 
 (use-package projectile
   :demand t
@@ -701,313 +908,309 @@
   ("C-c p" 'projectile-command-map)
   (:keymaps 'projectile-command-map
             "ESC" nil)
-  ("H-f" 'projectile-find-file
-   "H-/" 'projectile-ag
-   )
+  ("H-f" 'projectile-find-file)
   :config
   (projectile-mode t)
-  (setq projectile-indexing-method 'hybrid)
-  (setq projectile-ignored-projects '(
-                                      "/home/taylor"
-                                      "~/"
-                                      "~/Dropbox/"
-                                      "~/bl/"
-                                      ))
-  ;; projectile-ignored-projects is ignored when using 'alien projectile-indexing-method (default).
-  ;; This is because "ag" is used by projectile for searching instead of native projectile search.
-  ;; This sets command-line settings for ag which ignore certain files/directories.
-  (when (executable-find "ag")
+  (setq projectile-indexing-method 'hybrid
+        ;; projectile compares against expanded truenames, so "~/" never matches
+        projectile-ignored-projects (mapcar #'expand-file-name
+                                            '("~/" "~/Dropbox/" "~/bl/")))
+  ;; 'alien indexing ignores projectile-ignored-projects, because rg does the
+  ;; searching; ~/.ignore applies the same exclusions either way
+  (when (executable-find "rg")
     (setq projectile-generic-command
-          (let ((ag-cmd ""))
-            (setq ag-ignorefile
-                  (concat "--path-to-ignore" " "
-                          (expand-file-name "ag_ignore" user-emacs-directory)))
-            (concat "ag -0 --files-with-matches --nocolor --hidden --one-device --path-to-ignore ~/.ignore"))))
-  )
+          "rg -0 --files --color=never --hidden --one-file-system --ignore-file ~/.ignore")))
+
+(use-package rainbow-delimiters
+  :ghook 'prog-mode-hook)
+
+(use-package rainbow-mode
+  :demand)
+
+(use-package re-builder
+  :straight (:type built-in)
+  :init
+  (setq reb-re-syntax 'string))
 
 (use-package saveplace
   :straight (:type built-in)
   :demand
   :init
-  (save-place-mode t)
-  (setq save-place-file (concat user-emacs-directory "saveplace/")))
-
-;; Setup shackle for window management
-;; :regexp -- the buffer name is a regexp
-;; :select -- select the new window
-;; :inhibit-window-quit -- makes it so q doesn't quit the window, which is good for reused windows!
-;; :ignore -- don't show the new buffer at all
-;; :other -- reuse the other window (open one if there isn't another)
-;; :same -- reuse this window (consider inhibit-window-quit)
-;; :popup -- always popup a new window
-;; :align ('above 'below 'left 'right) and :size for customizing the new window
-;; :frame -- always popup a new frame
-(use-package shackle
-  :demand
-  :init
-  (setq shackle-rules '((("^\\*\\(?:[Cc]ompil\\(?:ation\\|e-Log\\)\\|Messages\\)" "^\\*info\\*$" "\\`\\*magit-diff: .*?\\'" grep-mode "*Flycheck errors*") :regexp t :align below :size 0.3)
-                        ("^\\*\\(?:Wo\\)?Man " :regexp t :frame t)
-                        ("^\\*Calc" :regexp t :size 0.4 :popup t)
-                        ("^\\*Alchemist" :regexp t :align below :select t :size 0.3 :popup t)
-                        ("^\\*lsp-help" :regexp t :select t :align bottom :size 0.2 :popup t)
-                        (("^\\*Warnings" "^\\*Warnings" "^\\*CPU-Profiler-Report " "^\\*Memory-Profiler-Report " "^\\*Process List\\*" "*Error*") :regexp t :align below :select t :size 0.2 :popup t)
-                        ("^\\*\\(?:Proced\\|timer-list\\|Abbrevs\\|Output\\|unsent mail\\)\\*" :regexp t :ignore t :popup t)
-                        ("*ag search*" :regexp t :popup t :select t :align below :size 0.4)
-                        ("^ \\*undo-tree\\*" :regexp t :frame t)
-                        ("^\\*\\([Hh]elp\\|Apropos\\)" :regexp t :frame t)
-                        ("\\`\\*magit.*?\\*\\'" :regexp t :frame t)
-                        (magit-status-mode :frame t)
-                        (magit-log-mode :frame t)
-                        ))
-  (setq shackle-default-rule '(:select t :same t)) ;; reuse current window for new buffers by default
-  (setq shackle-default-size 0.4)
-  :config
-  (shackle-mode)
-  )
+  ;; Read by save-place-mode on activation, so it has to be set before that
+  (setq save-place-file (expand-file-name "saveplace" user-emacs-directory))
+  (save-place-mode 1))
 
 (use-package smart-hungry-delete
-  :bind (("<backspace>" . smart-hungry-delete-backward-char)
-         ("C-d" . smart-hungry-delete-forward-char))
-  :defer nil
-  :config (smart-hungry-delete-add-default-hooks)
-  )
-
-(defun taylor-gl/transpose-sexps-backward ()
-  (interactive "*")
-  (sp-transpose-sexp -1)
-  )
-(use-package smartparens
+  :demand
   :general
-  ("H-C-1" 'sp-transpose-sexp
-   "H-C-h" 'taylor-gl/transpose-sexps-backward
-   "H-h" 'sp-backward-symbol
-   "H-i" 'sp-forward-symbol
-   "H-@" 'er/mark-symbol
-   "H-s" 'taylor-gl/hydra-smartparens/body
-   "C-H-s" 'taylor-gl/hydra-smartparens-slurp/body
-   )
+  ("<backspace>" #'smart-hungry-delete-backward-char
+   "C-d" #'smart-hungry-delete-forward-char)
+  :config
+  (smart-hungry-delete-add-default-hooks))
+
+(use-package topsy
+  :straight (:host github :repo "alphapapa/topsy.el" :type git)
+  :ghook 'prog-mode-hook)
+
+(use-package vundo
+  :general
+  ("C-z" 'undo
+   "C-S-z" 'undo-redo
+   "<mouse-8>" 'undo
+   "<drag-mouse-8>" 'undo
+   "<mouse-9>" 'undo-redo
+   "<drag-mouse-9>" 'undo-redo
+   "C-x u" 'vundo)
+  :config
+  (setq vundo-glyph-alist vundo-unicode-symbols
+        vundo-compact-display t))
+
+;; Persists undo history across sessions
+(use-package undo-fu-session
+  :demand
   :init
-  (setq sp-autoinsert-pair nil)
-  (defhydra taylor-gl/hydra-smartparens-transpose ()
-    "transpose"
-    ("i" sp-transpose-sexp "forward")
-    ("h" taylor-gl/transpose-sexps-backward "backward")
-    )
-  (defhydra taylor-gl/hydra-smartparens-slurp ()
-    "slurp"
-    ("i"  sp-forward-slurp-sexp "forward")
-    ("h" sp-backward-slurp-sexp "backward")
-    )
-  (defhydra taylor-gl/hydra-smartparens-barf ()
-    "barf"
-    ("i"  sp-forward-barf-sexp "forward")
-    ("h" sp-backward-barf-sexp "backward")
-    )
-  (defhydra taylor-gl/hydra-smartparens ()
-    "sexp"
-    ("h" sp-backward-sexp "backward" :column "move")
-    ("i" sp-forward-sexp "forward")
-    ("n" sp-down-sexp "down")
-    ("e" sp-backward-up-sexp "up")
-    ("a" sp-beginning-of-sexp "beginning")
-    ("p" sp-end-of-sexp "end")
-    ("t" taylor-gl/hydra-smartparens-transpose/body "transpose" :column "edit" :exit t)
-    ("m" sp-mark-sexp "mark" :exit t)
-    ("w" sp-copy-sexp "copy" :exit t)
-    ("k" sp-kill-sexp "kill" :exit t)
-    ("u" sp-unwrap-sexp "unwrap" :exit t)
-    ("b" taylor-gl/hydra-smartparens-barf/body "barf" :exit t)
-    ("s" taylor-gl/hydra-smartparens-slurp/body "slurp" :exit t)
-    )
-  )
-
-(use-package tree-sitter
-  :demand)
-
-(use-package tree-sitter-langs
-  :after tree-sitter
-  :demand
+  (setq undo-fu-session-directory
+        (expand-file-name "undo-fu-session/" user-emacs-directory))
   :config
-  (global-tree-sitter-mode)
-  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
-  )
-
-(use-package undo-tree
-  :demand
-  :general
-  ("C-z" 'undo-tree-undo
-   "S-C-z" 'undo-tree-redo
-   "<mouse-8>" 'undo-tree-undo
-   "<drag-mouse-8>" 'undo-tree-undo
-   "<mouse-9>" 'undo-tree-redo
-   "<drag-mouse-9>" 'undo-tree-redo
-   )
-  (:keymaps 'undo-tree-visualizer-mode-map
-            "C-b" nil
-            "C-h" 'undo-tree-visualize-switch-branch-left
-            "C-f" nil
-            "C-i" 'undo-tree-visualize-switch-branch-right
-            "C-p" nil
-            "C-e" 'undo-tree-visualize-undo
-            "b" nil
-            "h" 'undo-tree-visualize-switch-branch-left
-            "f" nil
-            "i" 'undo-tree-visualize-switch-branch-right
-            "p" nil
-            "e" 'undo-tree-visualize-undo)
-  (:keymaps 'undo-tree-visualizer-selection-mode-map
-            "C-b" nil
-            "C-h" 'undo-tree-visualizer-select-left
-            "C-f" nil
-            "C-i" 'undo-tree-visualizer-select-right
-            "C-p" nil
-            "C-e" 'undo-tree-visualizer-select-previous
-            "b" nil
-            "h" 'undo-tree-visualizer-select-left
-            "f" nil
-            "i" 'undo-tree-visualizer-select-right
-            "p" nil
-            "e" 'undo-tree-visualizer-select-previous)
-  :config
-  (global-undo-tree-mode)
-  (setq undo-tree-history-dir (let ((dir (concat user-emacs-directory
-                                                 "undo/")))
-                                (make-directory dir :parents)
-                                dir))
-  (setq undo-tree-history-directory-alist `(("." . ,undo-tree-history-dir)))
-  (setq undo-tree-auto-save-history t)
-  (setq undo-tree-enable-undo-in-region t))
+  (undo-fu-session-global-mode))
 
 ;; Setup uniquify for better buffer names
 (use-package uniquify
   :straight (:type built-in)
+  :demand
   :config
-  (setq uniquify-buffer-name-style 'post-forward-angle-brackets)
-  :demand)
+  (setq uniquify-buffer-name-style 'post-forward-angle-brackets))
 
-(use-package which-key
+;; Makes an ivy-occur results buffer editable with C-x C-q, so a project-wide
+;; search becomes a project-wide edit (C-c C-c applies it, C-c C-k discards it)
+(use-package wgrep
   :demand
   :general
-  (:keymaps 'which-key-C-h-map
-            "p" nil
-            "e" 'which-key-show-previous-page-cycle
-            "C-p" nil
-            "C-e" 'which-key-show-previous-page-cycle)
-  :init
-  (setq which-key-sort-uppercase-first nil)
+  (:keymaps 'wgrep-mode-map
+            ;; Edits only reach the files via wgrep-finish-edit, so C-s means that
+            "C-s" #'wgrep-finish-edit)
+  :config
+  (setq wgrep-auto-save-buffer t     ;; write the touched files, don't leave them modified
+        wgrep-change-readonly-file t))
+
+(use-package which-key
+  :straight (:type built-in)
+  :demand
+  :custom
+  (which-key-idle-delay 0.01)
+  (which-key-idle-secondary-delay 0.01)
+  (which-key-sort-uppercase-first nil)
   :config
   (which-key-mode)
-  :custom ;; must be custom, not config
-  (which-key-setup-side-window-bottom)
-  (which-key-idle-delay 0.01)
-  (which-key-idle-secondary-delay 0.01))
+  (which-key-setup-side-window-bottom))
 
 ;; Setup whitespace (to visualize trailing whitespace etc.)
 (use-package whitespace
   :straight (:type built-in)
   :demand
-  :init
-  (global-whitespace-mode)
   :config
   (setq whitespace-style '(face trailing tabs tab-mark)))
 
-(use-package yasnippet
+;; ws-butler trims whitespace only on changed lines when you save
+(use-package ws-butler
   :demand
-  :init
-  (setq yas-snippet-dirs '("~/Dropbox/dotfiles/snippets"))
   :config
-  (yas-global-mode 1))
-
-(use-package yasnippet-snippets
-  :demand
-  :after yasnippet)
+  (ws-butler-global-mode))
 
 
-;;+----------------------------------------------------------------------------------------+
-;;|                                                                                        |
-;;|   PROGRAMMING MODES                                                                    |
-;;|                                                                                        |
-;;+----------------------------------------------------------------------------------------+
+;;+-------------------------------------------------------------------------------------+
+;;|                                                                                     |
+;;|   PROGRAMMING MODES                                                                 |
+;;|                                                                                     |
+;;+-------------------------------------------------------------------------------------+
+(defconst taylor-gl/indent-variables
+  '(tab-width
+    c-basic-offset
+    js-indent-level
+    css-indent-offset
+    typescript-ts-mode-indent-offset
+    web-mode-markup-indent-offset
+    web-mode-css-indent-offset
+    web-mode-code-indent-offset
+    web-mode-block-padding)
+  "Every variable that means \"one indent level\" in some major mode I use.")
+
 (defun taylor-gl/setup-indent (n)
-  ;; general
-  (setq tab-width n
-        ;; java/c/c++
-        c-basic-offset n
-        ;; web development
-        js-indent-level n ; js-mode
-        web-mode-markup-indent-offset n ; web-mode, html tag in html file
-        web-mode-css-indent-offset n ; web-mode, css in html file
-        web-mode-code-indent-offset n ; web-mode, js code in html file
-        web-mode-block-padding n
-        css-indent-offset n
-        typescript-indent-level n)
-  )
+  "Set every indent-width variable to N, buffer-locally."
+  (setq-local indent-tabs-mode nil)
+  (dolist (var taylor-gl/indent-variables)
+    (set (make-local-variable var) n)))
 
 (defun taylor-gl/setup-code-mode ()
+  "Common setup for every programming buffer."
   (taylor-gl/setup-indent 2)
-  (setq display-fill-column-indicator-column 100)
+  (setq-local display-fill-column-indicator-column 100)
   (display-fill-column-indicator-mode)
-  (format-all-ensure-formatter)
-  (setq company-backends '((company-yasnippet company-capf company-dabbrev-code company-keywords)))
-  (setq company-minimum-prefix-length 2) ;; 3 by default, I want it a little more aggressive for coding
-  )
+  (whitespace-mode))
 
-;; Various coding-related modes
-(defconst code-mode-hooks
-  '(prog-mode-hook python-mode-hook elisp-mode-hook elixir-mode-hook emacs-lisp-mode-hook sh-mode typescript-mode js-mode web-mode)
-  )
+(general-add-hook 'prog-mode-hook #'taylor-gl/setup-code-mode)
 
-;; Configure code modes
-(mapc
- (lambda (code-mode-hook)
-   (general-add-hook code-mode-hook #'taylor-gl/setup-code-mode)
-   (general-add-hook code-mode-hook #'smartparens-mode)
-   )
- code-mode-hooks)
+;; Workaround to emacs 30.2/libtreesitter 0.26 bug
+(load (expand-file-name "treesit-predicate-rewrite" user-emacs-directory) nil 'nomessage nil t)
 
-;; Setup tide-mode for typescript
-(use-package typescript-mode)
+(use-package treesit
+  :straight (:type built-in)
+  :demand
+  :init
+  (setq treesit-extra-load-path '("/home/taylorgl/.builds/tree-sitter-module/dist"))
+  (setq treesit-language-source-alist
+        '((tsx "https://github.com/tree-sitter/tree-sitter-typescript"
+               "master" "tsx/src")
+          (typescript "https://github.com/tree-sitter/tree-sitter-typescript"
+                      "master" "typescript/src")))
+  :config
+  ;; Emacs 30 ships these modes but gives .yaml and Dockerfile no auto-mode entry
+  (dolist (entry '(("\\.tsx\\'" . tsx-ts-mode)
+                   ("\\.ts\\'" . typescript-ts-mode)
+                   ("\\.ya?ml\\'" . yaml-ts-mode)
+                   ("\\(?:Dockerfile\\|Containerfile\\)\\(?:\\..*\\)?\\'" . dockerfile-ts-mode)
+                   ("\\.dockerfile\\'" . dockerfile-ts-mode)))
+    (add-to-list 'auto-mode-alist entry))
+  ;; Both js keys are needed: auto-mode-alist names `javascript-mode', which is
+  ;; only an alias for `js-mode', and major-mode-remap-alist matches the symbol.
+  ;; Only the languages I actually meet inside a TS project are remapped -- the
+  ;; other ts-modes indent less well than the modes they would replace.
+  (dolist (from '((js-mode         . js-ts-mode)
+                  (javascript-mode . js-ts-mode)
+                  (sh-mode         . bash-ts-mode)
+                  (css-mode        . css-ts-mode)
+                  (json-mode       . json-ts-mode)
+                  (js-json-mode    . json-ts-mode)))
+    (add-to-list 'major-mode-remap-alist from)))
 
-(defun setup-tide-mode ()
-  (tide-setup)
-  ;; (flycheck-mode t)
-  ;; (setq flycheck-check-syntax-automatically '(save mode-enabled))
-  (tide-hl-identifier-mode t)
-  (setq company-tooltip-align-annotations t)
-  )
+(defun taylor-gl/eglot-ensure-for-real-files ()
+  "Run `eglot-ensure' only for buffers visiting real files."
+  (when (and buffer-file-name
+             (file-exists-p buffer-file-name)
+             (not (string-match-p "\\.~[^/]+~\\'" (buffer-name))))
+    (eglot-ensure)))
 
-(defun maybe-activate-tide-mode ()
-  (when (and (stringp buffer-file-name)
-             (string-match "\\.[tj]sx?\\'" buffer-file-name))
-    (tide-setup)
-    (tide-hl-identifier-mode)
-    )
-  )
-
-(use-package tide
-  :ghook ('typescript-mode-hook #'setup-tide-mode)
-  :ghook ('web-mode-hook #'maybe-activate-tide-mode)
-  :ghook ('js-mode-hook #'setup-tide-mode)
+(use-package eglot
+  :straight (:type built-in)
+  :commands eglot
+  :ghook
+  ('(typescript-ts-mode-hook tsx-ts-mode-hook js-ts-mode-hook
+     elixir-ts-mode-hook heex-ts-mode-hook)
+   #'taylor-gl/eglot-ensure-for-real-files)
   :general
-  (:keymaps 'tide-references-map
-            "p" nil
-            "e" 'tide-find-previous-reference)
-  (:keymaps 'tide-project-errors-mode-map
-            "p" nil
-            "e" 'tide-find-previous-error)
-  ;; :config
-  ;; (flycheck-add-mode 'typescript-tslint 'web-mode)
-  ;; (flycheck-add-mode 'javascript-eslint 'web-mode)
-  ;; (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
-  ;; (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
-  )
+  (:keymaps 'eglot-mode-map
+            "H-r" #'eglot-rename
+            "C-c c r" #'eglot-rename
+            "C-c c o" #'eglot-code-action-organize-imports)
+  :config
+  ;; One line in the echo area; the full signature goes to eldoc-box's childframe
+  (setq eldoc-echo-area-use-multiline-p nil)
+  ;; On-type formatting is the server rewriting the buffer as a side effect of an
+  ;; ordinary self-inserted character: RET after `Enum.map([], fn ->' comes back
+  ;; with a matching `end' I never typed.  Formatting is apheleia's job, on save.
+  (add-to-list 'eglot-ignored-server-capabilities
+               :documentOnTypeFormattingProvider)
+  ;; `includeAutomaticOptionalChainCompletions' rewrites `foo.bar' to `foo?.bar'
+  ;; when tsserver decides foo might be nullable, and its text edit covers the
+  ;; dot I already typed.  It goes in initializationOptions because that is the
+  ;; only place typescript-language-server merges arbitrary tsserver preferences.
+  ;; The `:language-id's are not decoration.  Eglot only sends what is written
+  ;; here; for a bare mode symbol it invents one by stripping "-ts-mode", so
+  ;; tsx-ts-mode announces itself as "tsx" and js-ts-mode as "js".  Neither is a
+  ;; language id typescript-language-server knows, and it classifies anything it
+  ;; doesn't recognise as JavaScript.
+  (add-to-list 'eglot-server-programs
+               '(((typescript-ts-mode :language-id "typescript")
+                  (tsx-ts-mode :language-id "typescriptreact")
+                  (js-ts-mode :language-id "javascript"))
+                 . ("typescript-language-server" "--stdio"
+                    :initializationOptions
+                    (:preferences
+                     (:includeAutomaticOptionalChainCompletions :json-false)))))
+  ;; ElixirLS reads completions out of compiled BEAM files, so the first
+  ;; connection in a project blocks on a full `mix compile', and a module that
+  ;; fails to compile stops appearing in the popup entirely.
+  (add-to-list 'eglot-server-programs
+               '((elixir-ts-mode heex-ts-mode) . ("elixir-ls"))))
 
-;; Setup web-mode for HTML, CSS, JSX/TSX, elixir .eex files, etc.
+;; The full eldoc documentation in a childframe, since the echo area is held to
+;; one line
+(use-package eldoc-box
+  :ghook ('eglot-managed-mode-hook #'eldoc-box-hover-at-point-mode)
+  :config
+  (setq eldoc-box-max-pixel-width 800
+        eldoc-box-max-pixel-height 400
+        eldoc-box-clear-with-C-g t))
+
+;; elixir-ts-mode indents an unparseable region with ((parent-is "ERROR")
+;; prev-line 2), and `prev-line' means the literal line above, blank lines
+;; included -- so RET after `Enum.map([], fn ->' re-indents the line I just left
+;; to the blank line's column.  That rule assumes something closes the block for
+;; you the moment you open it (on-type formatting, smartparens); I run neither.
+;; Valid code still indents, and a misplaced line is fixed once it parses.
+(defun taylor-gl/elixir-ts-no-indent-in-error ()
+  "Leave lines inside an unparseable region at the column I typed them.
+Rebuilds `treesit-simple-indent-rules' rather than modifying it in place:
+`setf' on `alist-get' would `setcdr' the cons that elixir-ts-mode shares
+with the global `elixir-ts--indent-rules', growing it once per buffer."
+  (setq-local treesit-simple-indent-rules
+              (mapcar (lambda (entry)
+                        (if (eq (car entry) 'elixir)
+                            (cons 'elixir
+                                  (cons '((parent-is "ERROR") no-indent 0)
+                                        (cdr entry)))
+                          entry))
+                      treesit-simple-indent-rules)))
+
+(use-package elixir-ts-mode
+  :mode ("\\.ex\\'" "\\.exs\\'")
+  ;; Runs after the mode body, which is where `treesit-major-mode-setup' installs
+  ;; the rules this overrides.
+  :ghook ('elixir-ts-mode-hook #'taylor-gl/elixir-ts-no-indent-in-error))
+
+(defconst taylor-gl/erlang-root
+  (seq-find #'file-directory-p '("/usr/lib/erlang" "/usr/local/lib/erlang"))
+  "Root of the installed Erlang, or nil if there isn't one.")
+
+(defconst taylor-gl/erlang-emacs-dir
+  (and taylor-gl/erlang-root
+       (car (last (sort (file-expand-wildcards
+                         (expand-file-name "lib/tools-*/emacs" taylor-gl/erlang-root))
+                        #'string<))))
+  "Directory holding erlang-mode, discovered from the installed tools app.")
+
+(when taylor-gl/erlang-emacs-dir
+  (add-to-list 'load-path taylor-gl/erlang-emacs-dir))
+
+(use-package erlang
+  :straight nil
+  :when taylor-gl/erlang-emacs-dir
+  :mode ("\\.erl\\'" . erlang-mode)
+  :init
+  (setq erlang-root-dir taylor-gl/erlang-root))
+
+(use-package mmm-mode
+  :demand
+  :custom-face
+  (mmm-default-submode-face ((t (:background nil))))
+  :init
+  (setq mmm-global-mode 'maybe
+        mmm-parse-when-idle t
+        mmm-set-file-name-for-modes '(web-mode))
+  (let ((class 'elixir-eex)
+        (submode 'web-mode)
+        (front "^[ ]+~[HL]\"\"\"")
+        (back "^[ ]+\"\"\""))
+    (mmm-add-classes (list (list class :submode submode :front front :back back)))
+    (mmm-add-mode-ext-class 'elixir-ts-mode nil class)))
+
+;; Setup web-mode for HTML, CSS, elixir .eex files, etc.
 (use-package web-mode
   :mode "\\.[px]?html?\\'"
   :mode "\\.\\(?:tpl\\|blade\\)\\(?:\\.php\\)?\\'"
   :mode "\\.erb\\'"
   :mode "\\.l?eex\\'"
+  :mode "\\.h?eex\\'"
   :mode "\\.jsp\\'"
   :mode "\\.as[cp]x\\'"
   :mode "\\.hbs\\'"
@@ -1018,10 +1221,15 @@
   :mode "\\.eco\\'"
   :mode "wp-content/themes/.+/.+\\.php\\'"
   :mode "templates/.+\\.php\\'"
-  :mode "\\.jsx\\'"
-  :mode "\\.tsx\\'"
   :mode "\\.svg\\'"
+  :ghook
+  ('web-mode-hook
+   (lambda ()
+     (setq-local devdocs-current-docs
+                 '("css" "html" "javascript" "react" "react_router"
+                   "tailwindcss" "typescript"))))
   :general
+  ;; web-mode's own prefixed motion commands, on the same hnei shape.
   (:keymaps 'web-mode-map
             "C-c C-t b" nil
             "C-c C-t h" 'web-mode-tag-beginning
@@ -1045,338 +1253,85 @@
         web-mode-enable-auto-quoting nil
         web-mode-enable-auto-pairing nil
         web-mode-enable-current-column-highlight t)
+
+  (define-advice web-mode-guess-engine-and-content-type (:around (f &rest r) guess-engine-by-extension)
+    (if (and buffer-file-name (equal "ex" (file-name-extension buffer-file-name)))
+        (progn (setq web-mode-content-type "html")
+               (setq web-mode-engine "elixir")
+               (web-mode-on-engine-setted))
+      (apply f r)))
   :config
   (add-to-list 'web-mode-engines-alist '("elixir" . "\\.eex\\'"))
-  )
-
-(use-package elixir-mode
-  :ghook ('elixir-mode-hook #'taylor-gl/ligatures-mode)
-  )
+  (setq-default web-mode-comment-formats (remove '("javascript" . "/*") web-mode-comment-formats))
+  (add-to-list 'web-mode-comment-formats '("javascript" . "//"))
+  (add-to-list 'web-mode-comment-formats '("typescript" . "//")))
 
 (use-package sh-script
-  :straight (:type built-in))
+  :straight (:type built-in)
+  ;; `sh-base-mode-hook', not `sh-mode-hook': `bash-ts-mode' derives from
+  ;; sh-base-mode alongside sh-mode, not from sh-mode itself
+  :ghook
+  ('sh-base-mode-hook (lambda () (setq-local devdocs-current-docs '("bash")))))
 
 (use-package slime
   :config
   (setq slime-lisp-implementations
-        '(
-          (sbcl ("/usr/bin/sbcl" "--dynamic-space-size" "2GB") :coding-system utf-8-unix)
-          )
+        '((sbcl ("/usr/bin/sbcl" "--dynamic-space-size" "2GB") :coding-system utf-8-unix))
         slime-net-coding-system 'utf-8-unix
         slime-export-save-file t
         slime-contribs '(slime-fancy slime-repl slime-scratch slime-trace-dialog)
         lisp-simple-loop-indentation 1
-        list-loop-keyword-indentation 6
+        lisp-loop-keyword-indentation 6
         lisp-loop-forms-indentation 6)
-  (add-hook 'slime-load-hook (lambda () (require 'slime-fancy)))
-  )
+  (add-hook 'slime-load-hook (lambda () (require 'slime-fancy))))
 
 (use-package markdown-mode
-  :mode ("README\\.md\\'" . gfm-mode)
-  :init (setq markdown-command "multimarkdown"))
+  ;; Order matters: use-package pushes each :mode entry onto the front of
+  ;; auto-mode-alist, so the one listed last is the one that wins.
+  :mode (("\\.md\\'" . markdown-mode)
+         ("README\\.md\\'" . gfm-mode))
+  :ghook
+  ('markdown-mode-hook (lambda () (setq-local devdocs-current-docs '("markdown"))))
+  :init
+  (setq markdown-command "pandoc")
+  :config
+  (set-face-attribute 'markdown-list-face nil :foreground "#555555"))
 
 (use-package typo
-  :ghook 'markdown-mode-hook
+  :demand
   :config
-  (typo-global-mode t)
-  )
+  (typo-global-mode t))
 
 
-;;+----------------------------------------------------------------------------------------+
-;;|                                                                                        |
-;;|   UTILITY FUNCTIONS                                                                    |
-;;|                                                                                        |
-;;+----------------------------------------------------------------------------------------+
+;;+-------------------------------------------------------------------------------------+
+;;|                                                                                     |
+;;|   UTILITY FUNCTIONS                                                                 |
+;;|                                                                                     |
+;;+-------------------------------------------------------------------------------------+
 ;; Based on crux-find-user-init-file, but opens in the same window
 (defun taylor-gl/find-user-init-file ()
   "Edit the `user-init-file', in the same window."
   (interactive)
   (find-file user-init-file))
 
-(general-define-key
- "C-c f u i f" 'taylor-gl/find-user-init-file)
-
-(setq taylor-gl/prettify-symbols-alist '(
-                                         ("#+BEGIN_SRC" . "†")
-                                         ("#+END_SRC" . "†")
-                                         ("#+BEGIN_QUOTE" . "†")
-                                         ("#+END_QUOTE" . "†")
-                                         ("#+begin_src" . "†")
-                                         ("#+end_src" . "†")
-                                         ("#+begin_quote" . "†")
-                                         ("#+end_quote" . "†")
-                                         ("lambda" . ?λ)
-                                         ("infinity" . ?∞)
-                                         ))
-
-(defvar taylor-gl/ligatures--old-prettify-alist)
-
-(defun taylor-gl/ligatures-mode--enable ()
-  "Enable ligatures in current buffer."
-  (setq-local taylor-gl/ligatures--old-prettify-alist prettify-symbols-alist)
-  (setq-local prettify-symbols-alist (append taylor-gl/prettify-symbols-alist taylor-gl/ligatures--old-prettify-alist))
-  (setq prettify-symbols-unprettify-at-point 'right-edge) ;; don't form ligatures under the cursor
-  (prettify-symbols-mode t))
-
-(defun taylor-gl/ligatures-mode--disable ()
-  "Disable ligatures in current buffer."
-  (setq-local prettify-symbols-alist taylor-gl/ligatures--old-prettify-alist)
-  (prettify-symbols-mode -1))
-
-(define-minor-mode taylor-gl/ligatures-mode
-  "Ligatures minor mode"
-  :lighter " Fira Code"
-  (setq-local prettify-symbols-unprettify-at-point 'right-edge)
-  (if taylor-gl/ligatures-mode
-      (taylor-gl/ligatures-mode--enable)
-    (taylor-gl/ligatures-mode--disable)))
-
-(defun taylor-gl/ligatures-mode--setup ()
-  "Setup ligatures Symbols"
-  (set-fontset-font t '(#Xe100 . #Xe16f) "Fira Code Symbol"))
-
-(provide 'taylor-gl/ligatures-mode)
-
-;; +org/dwim-at-point is from doom-emacs
-(defun +org--toggle-inline-images-in-subtree (&optional beg end refresh)
-  "Refresh inline image previews in the current heading/tree."
-  (let ((beg (or beg
-                 (if (org-before-first-heading-p)
-                     (line-beginning-position)
-                   (save-excursion (org-back-to-heading) (point)))))
-        (end (or end
-                 (if (org-before-first-heading-p)
-                     (line-end-position)
-                   (save-excursion (org-end-of-subtree) (point)))))
-        (overlays (cl-remove-if-not (lambda (ov) (overlay-get ov 'org-image-overlay))
-                                    (ignore-errors (overlays-in beg end)))))
-    (dolist (ov overlays nil)
-      (delete-overlay ov)
-      (setq org-inline-image-overlays (delete ov org-inline-image-overlays)))
-    (when (or refresh (not overlays))
-      (org-display-inline-images t t beg end)
-      t)))
-
-(defun +org--insert-item (direction)
-  (let ((context (org-element-lineage
-                  (org-element-context)
-                  '(table table-row headline inlinetask item plain-list)
-                  t)))
-    (pcase (org-element-type context)
-      ;; Add a new list item (carrying over checkboxes if necessary)
-      ((or `item `plain-list)
-       ;; Position determines where org-insert-todo-heading and org-insert-item
-       ;; insert the new list item.
-       (if (eq direction 'above)
-           (org-beginning-of-item)
-         (org-end-of-item)
-         (backward-char))
-       (org-insert-item (org-element-property :checkbox context))
-       ;; Handle edge case where current item is empty and bottom of list is
-       ;; flush against a new heading.
-       (when (and (eq direction 'below)
-                  (eq (org-element-property :contents-begin context)
-                      (org-element-property :contents-end context)))
-         (org-end-of-item)
-         (org-end-of-line)))
-
-      ;; Add a new table row
-      ((or `table `table-row)
-       (pcase direction
-         ('below (save-excursion (org-table-insert-row t))
-                 (org-table-next-row))
-         ('above (save-excursion (org-shiftmetadown))
-                 (+org/table-previous-row))))
-
-      ;; Otherwise, add a new heading, carrying over any todo state, if
-      ;; necessary.
-      (_
-       (let ((level (or (org-current-level) 1)))
-         ;; I intentionally avoid `org-insert-heading' and the like because they
-         ;; impose unpredictable whitespace rules depending on the cursor
-         ;; position. It's simpler to express this command's responsibility at a
-         ;; lower level than work around all the quirks in org's API.
-         (pcase direction
-           (`below
-            (let (org-insert-heading-respect-content)
-              (goto-char (line-end-position))
-              (org-end-of-subtree)
-              (insert "\n" (make-string level ?*) " ")))
-           (`above
-            (org-back-to-heading)
-            (insert (make-string level ?*) " ")
-            (save-excursion (insert "\n"))))
-         (when-let* ((todo-keyword (org-element-property :todo-keyword context))
-                     (todo-type    (org-element-property :todo-type context)))
-           (org-todo
-            (cond ((eq todo-type 'done)
-                   ;; Doesn't make sense to create more "DONE" headings
-                   (car (+org-get-todo-keywords-for todo-keyword)))
-                  (todo-keyword)
-                  ('todo)))))))
-
-    (when (org-invisible-p)
-      (org-show-hidden-entry))
-    (when (and (bound-and-true-p evil-local-mode)
-               (not (evil-emacs-state-p)))
-      (evil-insert 1))))
-
-(defun +org--get-property (name &optional bound)
+;; Similar to sort-lines, keep-lines, etc
+(defun taylor-gl/uniquify-region-lines (beg end)
+  "Remove duplicate adjacent lines between BEG and END."
+  (interactive "*r")
   (save-excursion
-    (let ((re (format "^#\\+%s:[ \t]*\\([^\n]+\\)" (upcase name))))
-      (goto-char (point-min))
-      (when (re-search-forward re bound t)
-        (buffer-substring-no-properties (match-beginning 1) (match-end 1))))))
+    (goto-char beg)
+    (while (re-search-forward "^\\(.*\n\\)\\1+" end t)
+      (replace-match "\\1"))))
 
-(defun +org-get-global-property (name &optional file bound)
-  "Get a document property named NAME (string) from an org FILE (defaults to
-current file). Only scans first 2048 bytes of the document."
-  (unless bound
-    (setq bound 256))
-  (if file
-      (with-temp-buffer
-        (insert-file-contents-literally file nil 0 bound)
-        (+org--get-property name))
-    (+org--get-property name bound)))
+(defun taylor-gl/uniquify-buffer-lines ()
+  "Remove duplicate adjacent lines in the current buffer."
+  (interactive)
+  (taylor-gl/uniquify-region-lines (point-min) (point-max)))
 
-(defun +org-get-todo-keywords-for (&optional keyword)
-  "Returns the list of todo keywords that KEYWORD belongs to."
-  (when keyword
-    (cl-loop for (type . keyword-spec)
-             in (cl-remove-if-not #'listp org-todo-keywords)
-             for keywords =
-             (mapcar (lambda (x) (if (string-match "^\\([^(]+\\)(" x)
-                                (match-string 1 x)
-                              x))
-                     keyword-spec)
-             if (eq type 'sequence)
-             if (member keyword keywords)
-             return keywords)))
+(defun taylor-gl/paste-from-primary ()
+  "Insert the X primary selection at point."
+  (interactive)
+  (insert (gui-get-primary-selection)))
 
-(defun +org/dwim-at-point (&optional arg)
-  "Do-what-I-mean at point.
-If on a:
-- checkbox list item or todo heading: toggle it.
-- clock: update its time.
-- headline: cycle ARCHIVE subtrees, toggle latex fragments and inline images in
-  subtree; update statistics cookies/checkboxes and ToCs.
-- footnote reference: jump to the footnote's definition
-- footnote definition: jump to the first reference of this footnote
-- table-row or a TBLFM: recalculate the table's formulas
-- table-cell: clear it and go into insert mode. If this is a formula cell,
-  recaluclate it instead.
-- babel-call: execute the source block
-- statistics-cookie: update it.
-- latex fragment: toggle it.
-- link: follow it
-- otherwise, refresh all inline images in current tree."
-  (interactive "P")
-  (let* ((context (org-element-context))
-         (type (org-element-type context)))
-    ;; skip over unimportant contexts
-    (while (and context (memq type '(verbatim code bold italic underline strike-through subscript superscript)))
-      (setq context (org-element-property :parent context)
-            type (org-element-type context)))
-    (pcase type
-      (`headline
-       (cond ((memq (bound-and-true-p org-goto-map)
-                    (current-active-maps))
-              (org-goto-ret))
-             ((and (fboundp 'toc-org-insert-toc)
-                   (member "TOC" (org-get-tags)))
-              (toc-org-insert-toc)
-              (message "Updating table of contents"))
-             ((string= "ARCHIVE" (car-safe (org-get-tags)))
-              (org-force-cycle-archived))
-             ((or (org-element-property :todo-type context)
-                  (org-element-property :scheduled context))
-              (org-todo
-               (if (eq (org-element-property :todo-type context) 'done)
-                   (or (car (+org-get-todo-keywords-for (org-element-property :todo-keyword context)))
-                       'todo)
-                 'done))))
-       ;; Update any metadata or inline previews in this subtree
-       (org-update-checkbox-count)
-       (org-update-parent-todo-statistics)
-       (when (and (fboundp 'toc-org-insert-toc)
-                  (member "TOC" (org-get-tags)))
-         (toc-org-insert-toc)
-         (message "Updating table of contents"))
-       (let* ((beg (if (org-before-first-heading-p)
-                       (line-beginning-position)
-                     (save-excursion (org-back-to-heading) (point))))
-              (end (if (org-before-first-heading-p)
-                       (line-end-position)
-                     (save-excursion (org-end-of-subtree) (point))))
-              (overlays (ignore-errors (overlays-in beg end)))
-              (latex-overlays
-               (cl-find-if (lambda (o) (eq (overlay-get o 'org-overlay-type) 'org-latex-overlay))
-                           overlays))
-              (image-overlays
-               (cl-find-if (lambda (o) (overlay-get o 'org-image-overlay))
-                           overlays)))
-         (+org--toggle-inline-images-in-subtree beg end)
-         (if (or image-overlays latex-overlays)
-             (org-clear-latex-preview beg end)
-           (org--latex-preview-region beg end))))
-
-      (`clock (org-clock-update-time-maybe))
-
-      (`footnote-reference
-       (org-footnote-goto-definition (org-element-property :label context)))
-
-      (`footnote-definition
-       (org-footnote-goto-previous-reference (org-element-property :label context)))
-
-      ((or `planning `timestamp)
-       (org-follow-timestamp-link))
-
-      ((or `table `table-row)
-       (if (org-at-TBLFM-p)
-           (org-table-calc-current-TBLFM)
-         (ignore-errors
-           (save-excursion
-             (goto-char (org-element-property :contents-begin context))
-             (org-call-with-arg 'org-table-recalculate (or arg t))))))
-
-      (`table-cell
-       (org-table-blank-field)
-       (org-table-recalculate arg)
-       (when (and (string-empty-p (string-trim (org-table-get-field)))
-                  (bound-and-true-p evil-local-mode))
-         (evil-change-state 'insert)))
-
-      (`babel-call
-       (org-babel-lob-execute-maybe))
-
-      (`statistics-cookie
-       (save-excursion (org-update-statistics-cookies arg)))
-
-      ((or `src-block `inline-src-block)
-       (org-babel-execute-src-block arg))
-
-      ((or `latex-fragment `latex-environment)
-       (org-latex-preview arg))
-
-      (`link
-       (let* ((lineage (org-element-lineage context '(link) t))
-              (path (org-element-property :path lineage)))
-         (if (or (equal (org-element-property :type lineage) "img")
-                 (and path (image-type-from-file-name path)))
-             (+org--toggle-inline-images-in-subtree
-              (org-element-property :begin lineage)
-              (org-element-property :end lineage))
-           (org-open-at-point arg))))
-
-      ((guard (org-element-property :checkbox (org-element-lineage context '(item) t)))
-       (let ((match (and (org-at-item-checkbox-p) (match-string 1))))
-         (org-toggle-checkbox (if (equal match "[ ]") '(16)))))
-
-      (_
-       (if (or (org-in-regexp org-ts-regexp-both nil t)
-               (org-in-regexp org-tsr-regexp-both nil  t)
-               (org-in-regexp org-link-any-re nil t))
-           (call-interactively #'org-open-at-point)
-         (+org--toggle-inline-images-in-subtree
-          (org-element-property :begin context)
-          (org-element-property :end context)))))))
+(provide 'init)
+;;; init.el ends here

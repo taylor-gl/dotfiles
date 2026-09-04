@@ -1,0 +1,76 @@
+# Burning Sun — dark
+#
+# Monochrome and rubrication. The grey ramp is the black letter; vermilion is
+# the rubric, spent only on what matters most (headings, types, errors). Nothing
+# else on screen is allowed a hue.
+#
+# base00/base02/base05 and the accent are the website's four values verbatim
+# (--bg, --line, --ink, --ember) so the desktop and taylor.gl cannot drift.
+#
+# Greys are warm (hue ~40°, very low chroma). Neutral grey beside warm ink
+# reads as dirty, so the whole ramp is pulled toward the ink.
+
+system: "base16"
+name: "Burning Sun Dark"
+author: "Taylor Lunt (https://taylor.gl)"
+variant: "dark"
+palette:
+  base00: "#0a0a0a"   # background                        — site --bg
+  base01: "#141312"   # status bars, line highlight
+  base02: "#262626"   # selection, borders                — site --line
+  base03: "#5f5a52"   # comments, invisibles
+  base04: "#8a8479"   # dim foreground
+  base05: "#ede8e0"   # foreground                        — site --ink
+  base06: "#f6f3ee"   # bright foreground
+  base07: "#ffffff"   # lightest
+  base08: "#ff4a00"   # THE RUBRIC: errors, types         — site --ember
+  base09: "#e8724a"   # secondary rubric: constants, numbers
+  base0A: "#d0553a"   # tertiary rubric: search matches
+  base0B: "#a8a196"   # strings                    (grey)
+  base0C: "#8a8479"   # escapes, regex             (grey)
+  base0D: "#ede8e0"   # functions — full ink, subject of the page
+  base0E: "#a8a196"   # keywords                   (grey + italic)
+  base0F: "#5f5a52"   # deprecated
+
+# Beyond the 16. Read by render.py; ignored by any standard base16 tool.
+extras:
+  # Rainbow delimiters: desaturated but genuinely hue-distinct, so nesting
+  # stays unambiguous without shouting. Warm-leaning to sit with the ink.
+  rainbow:
+    - "#ff4a00"
+    - "#c9b896"
+    - "#7f9e97"
+    - "#a08fa8"
+    - "#d0c4b4"
+    - "#7b8a99"
+  # ANSI. Rubricated like everything else: the ember and a grey ramp.
+  #
+  # An earlier pass kept a desaturated hue per slot so `ls` and prompts stayed
+  # colourful. That was a carve-out too far — a green username and blue
+  # directories are exactly the thing this scheme is trying to get rid of.
+  #
+  # The one distinction kept is diff: deletions come through red (ember) and
+  # additions through green (bright ink), which stay unmistakable from each
+  # other without either being a colour.
+  # ANSI blue is the rubric, not a grey. Claude Code draws inline `code` and
+  # hyperlinks with the terminal's blue (light themes) or bright blue (dark),
+  # on a path that ignores theme overrides — so these two slots are the only
+  # handle on it. `ls` is moved off blue in .dircolors to keep the collision
+  # from spreading.
+  ansi:
+    black:   "#262626"
+    red:     "#ff4a00"
+    green:   "#c4bfb6"
+    yellow:  "#e8724a"
+    blue:    "#ff4a00"
+    magenta: "#8a8479"
+    cyan:    "#a8a196"
+    white:   "#a8a196"
+    bright_black:   "#5f5a52"
+    bright_red:     "#ff4a00"
+    bright_green:   "#ede8e0"
+    bright_yellow:  "#e8724a"
+    bright_blue:    "#ff4a00"
+    bright_magenta: "#a8a196"
+    bright_cyan:    "#c4bfb6"
+    bright_white:   "#ffffff"

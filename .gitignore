@@ -4,3 +4,23 @@
 tmp/
 .directory
 *.swp
+
+# Retired configs. Kept on disk for reference, not worth versioning.
+old/
+
+# Never commit these. The directories themselves have never been tracked, but
+# nothing was stopping a stray `add -A` from sweeping them in.
+.ssh/
+.gnupg/
+.secrets
+
+# Encrypted archives, purged from history in September 2026. The SSH keys they
+# held were only ZipCrypto-protected and had been public since 2021, so they
+# are rotated, not merely deleted. Listed here so they cannot come back.
+*.gpg_symmetric
+ssh.zip
+gnupg.zip
+
+# Editor and migration backups
+*.bak
+*.bak-*

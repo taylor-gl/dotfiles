@@ -1,17 +1,45 @@
 [user]
 	email = taylor@taylor.gl
 	name = Taylor G. Lunt
-	signingkey = CA05241A341F8CF7
-[commit]
-	gpgsign = true
-[includeIf "gitdir:~/bl/"]
-	path = ~/.gitconfig-work
+
+[init]
+	defaultBranch = master
+
+[column]
+	ui = auto
+
+[branch]
+	sort = committerdate
+
 [format]
 	pretty = oneline
+
 [log]
 	abbrevCommit = true
+
+[alias]
+	log = log --color --graph --oneline --abbrev-commit
+	lg = log --color --graph --oneline --abbrev-commit
+	fpush = push --force-with-lease
+
+[url "https://github.com/"]
+	insteadOf = git://github.com/
+
+[credential "https://github.com"]
+	helper =
+	helper = !/usr/bin/gh auth git-credential
+
+[credential "https://gist.github.com"]
+	helper =
+	helper = !/usr/bin/gh auth git-credential
+
 [filter "lfs"]
 	process = git-lfs filter-process
 	required = true
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
+
+# Work repos live under ~/bl. The referenced file does not currently exist,
+# so this include is inert until it is created.
+[includeIf "gitdir:~/bl/"]
+	path = ~/.gitconfig-work

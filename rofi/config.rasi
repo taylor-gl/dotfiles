@@ -1,0 +1,10 @@
+configuration {
+  modi: "drun";
+  show-icons: true;
+  drun-icon-theme: "Adwaita";
+  dpi: 144;
+}
+
+/* Burning Sun. switch-to-{dark,light}-theme.sh rewrites this @theme line to
+ * point at the other variant. */
+@theme "/home/taylorgl/Dropbox/dotfiles/theme/out/paper/rofi.rasi"

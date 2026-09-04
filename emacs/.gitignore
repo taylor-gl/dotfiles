@@ -1,0 +1,40 @@
+# Only hand-written configuration belongs in this directory.
+#
+# ~/.emacs.d is a real *local* directory now, and the files here are symlinked
+# into it.  All generated state -- package checkouts and builds, native-comp
+# output, backups, undo history, caches -- lives in ~/.emacs.d and never touches
+# Dropbox, because syncing it across machines produced conflicted copies and
+# gigabytes of churn.
+#
+# If any of the following ever reappear here, something is writing to the wrong
+# place; that is a bug worth chasing rather than committing.
+
+straight/
+elpa/
+elpa.bak/
+quelpa/
+eln-cache/
+backups/
+auto-save-list/
+undo/
+undo-fu-session/
+svg-lib/
+tree-sitter/
+transient/
+var/
+url/
+.cache/
+recentf
+projects
+tramp
+places
+saveplace
+custom.el
+session.*
+.lsp-session-v1
+*.elc
+*~
+\#*\#
+
+# Dropbox conflict artefacts
+*conflicted copy*

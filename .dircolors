@@ -1,0 +1,58 @@
+# Burning Sun — ls colours.
+#
+# ANSI blue (4) and bright blue (12) are the rubric: Claude Code draws inline
+# code and hyperlinks with them on a path that ignores its own theme, so those
+# two slots carry the ember. `ls` therefore has to stay off blue entirely, or
+# every directory would burn.
+#
+# Everything here separates by weight and grey value instead, with the ember
+# reserved for the two things worth catching the eye: broken links and
+# executables. Colour numbers, not hex, so this follows the light/dark switch
+# along with the rest of the terminal palette.
+
+RESET 0
+NORMAL 00
+FILE 00
+
+DIR              01;37       # bold ink
+LINK             04;37       # underlined
+ORPHAN           01;31       # broken symlink — ember
+MISSING          01;31
+EXEC             01;31       # executable — ember
+SETUID           01;31
+SETGID           01;31
+CAPABILITY       01;31
+STICKY           01;37
+OTHER_WRITABLE   01;37
+STICKY_OTHER_WRITABLE 01;37
+
+FIFO             33
+SOCK             33
+DOOR             33
+BLK              33
+CHR              33
+
+# Archives and media step down the grey ramp rather than picking up hues.
+.tar 33
+.tgz 33
+.zip 33
+.gz  33
+.bz2 33
+.xz  33
+.zst 33
+.7z  33
+.rar 33
+
+.jpg 90
+.jpeg 90
+.png 90
+.gif 90
+.webp 90
+.svg 90
+.mp4 90
+.mkv 90
+.webm 90
+.mp3 90
+.flac 90
+.wav 90
+.pdf 90

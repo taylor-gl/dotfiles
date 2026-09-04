@@ -1,0 +1,61 @@
+# Burning Sun — paper
+#
+# The light twin. Same rubrication logic inverted onto the website's paper
+# stock (--bg #ede8e0, --line #cfc7b9).
+#
+# The rubric is the site's #ff4a00 in both variants. On paper that is 2.76:1,
+# below AA — a deliberate choice: matching the site exactly matters more here
+# than the ratio does.
+
+system: "base16"
+name: "Burning Sun Paper"
+author: "Taylor Lunt (https://taylor.gl)"
+variant: "light"
+palette:
+  base00: "#ede8e0"   # background                        — site --bg (light)
+  base01: "#e3ddd3"   # status bars, line highlight
+  base02: "#cfc7b9"   # selection, borders                — site --line (light)
+  base03: "#9a9184"   # comments, invisibles
+  base04: "#6b665e"   # dim foreground
+  base05: "#0a0a0a"   # foreground                        — site --ink (light)
+  base06: "#050505"   # starker foreground  (light schemes continue *darker*)
+  base07: "#000000"   # starkest
+  base08: "#ff4a00"   # THE RUBRIC: errors, types        — site --ember
+  base09: "#c93a08"   # secondary rubric: constants, numbers
+  base0A: "#a83208"   # tertiary rubric: search matches
+  base0B: "#55504a"   # strings                    (grey)
+  base0C: "#6b665e"   # escapes, regex             (grey)
+  base0D: "#0a0a0a"   # functions — full ink, subject of the page
+  base0E: "#55504a"   # keywords                   (grey + italic)
+  base0F: "#9a9184"   # deprecated
+
+extras:
+  rainbow:
+    - "#ff4a00"
+    - "#6b5a38"
+    - "#3d5a52"
+    - "#5a4a63"
+    - "#5c5245"
+    - "#3f4c5a"
+  # ANSI blue is the rubric, not a grey. Claude Code draws inline `code` and
+  # hyperlinks with the terminal's blue (light themes) or bright blue (dark),
+  # on a path that ignores theme overrides — so these two slots are the only
+  # handle on it. `ls` is moved off blue in .dircolors to keep the collision
+  # from spreading.
+  ansi:
+    black:   "#cfc7b9"
+    green:   "#4d4a44"
+    red:     "#ff4a00"
+    yellow:  "#c93a08"
+    blue:    "#ff4a00"
+    magenta: "#6b665e"
+    cyan:    "#55504a"
+    white:   "#55504a"
+    bright_black:   "#9a9184"
+    bright_red:     "#ff4a00"
+    bright_green:   "#0a0a0a"
+    bright_yellow:  "#c93a08"
+    bright_blue:    "#ff4a00"
+    bright_magenta: "#55504a"
+    bright_cyan:    "#4d4a44"
+    bright_white:   "#0a0a0a"

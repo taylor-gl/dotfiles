@@ -8,13 +8,12 @@
 # enable bash completion in interactive shells
 if ! shopt -oq posix; then
     # system completions for bash
-    if [ -f /usr/share/bash-completion/completions ]; then
-        . /usr/share/bash-completion/
-    elif [ -f /usr/share/bash-completion/bash_completion ]; then
+    if [ -f /usr/share/bash-completion/bash_completion ]; then
         . /usr/share/bash-completion/bash_completion
     elif [ -f /etc/bash_completion ]; then
         . /etc/bash_completion
     fi
+
     # user completions for bash
     if [ -f ~/.bash_completion ]; then
         . ~/.bash_completion
@@ -61,18 +60,20 @@ alias ........="cd ../../../../../../.."
 alias .........="cd ../../../../../../../.."
 
 # make utilities such as grep and ls use colored output
-eval $(dircolors -b)
+eval $(dircolors -b ~/.dircolors 2>/dev/null || dircolors -b)
 alias grep='grep --color=auto'
 alias diff=colordiff
 # colored ls with icons
 alias ls='lsd --color=auto'
 # alias ls='ls -F --color=auto'
+alias lg='EDITOR="emacsclient -t -nw" lazygit'
 
 # Add emacs as editor
 # --alternate-editor="" ensures the daemon will be opened if necessary
 # --eval "(taylor-gl/emacsclient)" runs some functions I want run when I run emacsclient; However, I don't add this to EDITOR because it breaks e.g. git launching my EDITOR
-export EDITOR='emacsclient --create-frame --alternate-editor=""'
-e() { (emacsclient --create-frame --no-wait --alternate-editor="" --eval "(taylor-gl/emacsclient)" "$@" &> /dev/null &) }
+#export EDITOR='emacsclient --create-frame --alternate-editor=""'
+#e() { (emacsclient --create-frame --no-wait --alternate-editor="" --eval "(taylor-gl/emacsclient)" "$@" &> /dev/null &) }
+export EDITOR='hx'
 
 # Show git branch name (from https://askubuntu.com/a/946716)
 force_color_prompt=yes
@@ -95,6 +96,30 @@ alias trash=trash-put
 
 alias youtube-to-mp3='youtube-dl --extract-audio --audio-format mp3'
 
+git() {
+    if [ "$1" = "log" ]
+    then
+        command git log --graph "${@:2}";
+    else
+        command git "$@";
+    fi;
+}
+
+# set the path for locate to the home directory
+
+export XDG_CONFIG_HOME=$HOME/.config
+
+# Languages
+PATH="$PATH:$HOME/.cargo/bin"
+PATH=$PATH:/usr/local/go/bin
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+# For nvm
+source /usr/share/nvm/init-nvm.sh
+
+export ASDF_DATA_DIR=/home/taylorgl/.asdf
+
 # PATH
 PATH=$PATH:~/.scripts:.
 PATH=$PATH:~/.build/
@@ -109,34 +134,24 @@ PATH=$PATH:~/.local/share/flatpak/exports/bin
 PATH=$PATH:/var/lib/flatpak/exports/bin
 PATH=$PATH:~/.build/elixir-1.13.3/bin
 PATH=$PATH:~/.build/otp_src_24.0.2/bin
-PATH=$PATH:~/.nvm/versions/node/v16.14.0/bin
-
-# set the path for locate to the home directory
-export LOCATE_PATH=/home/taylor/.locate.db
-
-# Languages
-PATH=$PATH:/home/taylor/.gem/ruby/2.5.0/bin
-PATH=$PATH:/home/taylor/.cargo/bin
-PATH=$PATH:/home/taylor/.cargo/env
-PATH=$PATH:/usr/local/go/bin
-export ERL_LIBS="/home/taylor/.asdf/installs/elixir/1.11.2/lib/elixir/lib"
-export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+PATH=$PATH:~/.build/exa/bin
+PATH=$PATH:~/.fly/bin
+PATH=$PATH:~/.cargo/bin
+PATH=$PATH:~/.asdf/installs/elixir/1.16.1-otp-26/.mix/escripts
+PATH=$PATH:~/.dotnet
+PATH=$PATH:~/.dotnet/tools
+PATH=$ASDF_DATA_DIR/shims:$PATH
 
 # export DPI setting for alacritty
 export WINIT_HIDPI_FACTOR=1.0 alacritty
 
-# Change keyboard repeat rate
+# Change keyboard repeat rate (better to put this in...?)
 xset r rate 200 100
 
-# Set hyper key
-xmodmap ~/.Xmodmap
+export HELIX_RUNTIME=~/.build/helix/runtime
 
 # Add zoxide (faster cd)
 eval "$(zoxide init bash)"
-
-# Add fuck
-eval $(thefuck --alias)
 
 # export gpg key
 export GPG_TTY=$(tty)
@@ -144,4 +159,41 @@ export GPG_TTY=$(tty)
 
 # Generated for envman. Do not edit.
 [ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+
+eval "$(fzf --bash)"
+
+ export FZF_DEFAULT_COMMAND='ag -l --path-to-ignore ~/.ignore --nocolor --hidden -g ""'
+ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+ 
+
+if [ -e /usr/share/doc/fzf/examples/key-bindings.bash ]; then
+      source /usr/share/doc/fzf/examples/key-bindings.bash
+fi
+
+# I have AddKeyToAgent yes in my ssh config, so I don't need to add any keys here or anything
+eval $(ssh-agent -s -t 28800) &>/dev/null
+
+# Secrets
+source ~/.secrets
+
+alias ls=exa
+
+
+# Make bash history update right away rather than on terminal close
+shopt -s histappend
+PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
+
+export ERL_AFLAGS="-kernel shell_history enabled"
+
+# To prevent erlang build failure in Manjaro
+export KERL_CONFIGURE_OPTIONS="--with-odbc=/var/lib/pacman/local/unixodbc-$(pacman -Q unixodbc | cut -d' ' -f2)"
+
+
+# Set hyper key
+xmodmap ~/.Xmodmap
+
+source '/home/taylorgl/.bash_completions/comfy.sh'
+
+# Temporary elixir stuff
+export PRISM_CLOAK_TAG="V1"
 

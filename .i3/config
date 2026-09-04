@@ -1,0 +1,454 @@
+# NOTE Depends on i3gaps, and helpers-for-i3, which itself depends on i3ipc for python
+
+# modifier keys
+set $alt Mod1
+set $sup Mod4
+
+# function keys
+set $f13 XF86Tools
+set $f14 XF86Launch5
+set $f15 XF86Launch6
+set $f20 XF86AudioMicMute
+
+# media keys (for my headphones)
+set $play XF86AudioPlay
+set $stop XF86AudioStop
+set $next XF86AudioNext
+set $previous XF86AudioPrev
+
+# programs
+set $web_browser vivaldi
+set $file_browser nautilus
+set $editor emacsclient --create-frame --no-wait --alternate-editor=""
+
+# use these keys for focus, movement, and resize directions when reaching for
+# the arrows is not convenient
+set $up e
+set $down n
+set $left h
+set $right i
+
+# media controls
+# to control media in the browser, consider the browser-playerctl chrome plugin
+bindsym $play exec playerctl play-pause
+bindsym $stop exec playerctl stop
+bindsym $next exec playerctl next
+bindsym $previous exec playerctl previous
+
+# use Mouse plus this key to drag floating windows to their wanted position
+floating_modifier $sup
+
+# kill focused window (b as in bye bye)
+#bindsym $sup+$f20 kill
+bindsym $sup+b kill
+
+# kill clicked window
+#bindsym --release $sup+Shift+$f20 exec xkill
+bindsym --release $sup+Shift+b exec xkill
+
+# terminal
+# bindsym $sup+Return exec ~/.scripts/alacritty
+bindsym $sup+Return exec kitty
+
+# monitor brightness
+bindsym $sup+minus exec ~/.scripts/set-brightness-0.sh
+bindsym $sup+equal exec ~/.scripts/set-brightness-100.sh
+
+# laptop brightness
+bindsym XF86MonBrightnessUp exec brightnessctl set +10%
+bindsym XF86MonBrightnessDown exec brightnessctl set 10%-
+
+# take a screenshot
+bindsym --release $f14 exec "killall -q flameshot; sleep 0.5; flameshot gui --path /home/taylorgl/Pictures/Screenshots"
+
+# program launcher
+# No -theme flag: it overrides the @theme line in rofi/config.rasi, which is
+# what points at the generated Burning Sun rasi for the current variant. The
+# old .i3/rofi_theme file (holding "Arc-Dark") is gone.
+bindsym $sup+x exec rofi -show drun
+bindsym $alt+Tab exec rofi -show window
+
+# keymap
+bindsym $sup+BackSpace exec "setxkbmap -option '' -layout us -variant colemak"
+bindsym $sup+Shift+BackSpace exec "setxkbmap -option '' -layout us"
+
+# shortcuts for launching programs
+bindsym $sup+d exec $file_browser
+bindsym $sup+space exec $editor
+
+# change focus
+bindsym $sup+$left focus left
+bindsym $sup+$down focus down
+bindsym $sup+$up focus up
+bindsym $sup+$right focus right
+
+# alternatively, you can use the cursor keys:
+bindsym $sup+Left focus left
+bindsym $sup+Down focus down
+bindsym $sup+Up focus up
+bindsym $sup+Right focus right
+
+# move focused window
+bindsym $sup+Shift+$left move left
+bindsym $sup+Shift+$down move down
+bindsym $sup+Shift+$up move up
+bindsym $sup+Shift+$right move right
+
+# alternatively, you can use the cursor keys:
+bindsym $sup+Shift+Left move left
+bindsym $sup+Shift+Down move down
+bindsym $sup+Shift+Up move up
+bindsym $sup+Shift+Right move right
+
+# split in horizontal orientation
+bindsym $sup+Shift+v split h
+
+# split in vertical orientation
+bindsym $sup+v split v
+
+# enter fullscreen mode for the focused container
+bindsym $sup+t fullscreen toggle
+
+# switch container layout (stacked, tabbed, toggle split)
+bindsym $sup+s layout toggle stacked tabbled split
+
+# toggle tiling / floating
+bindsym $sup+c floating toggle
+
+# move the currently focused window to the scratchpad
+bindsym $sup+Shift+$f15 move scratchpad
+
+# Show the next scratchpad window or hide the focused scratchpad window.
+# If there are multiple scratchpad windows, this command cycles through them.
+bindsym $sup+$f15 scratchpad show
+
+# Define names for default workspaces for which we configure key bindings later on.
+# We use variables to avoid repeating the names in multiple places.
+set $wsq "q"
+set $wsw "w"
+set $wsf "f"
+set $wsp "p"
+set $wsg "g"
+set $wsj "j"
+set $wsl "l"
+set $wsu "u"
+set $wsy "y"
+
+#assign workspaces to screens
+workspace $wsq output DP-0 # Pixio monitor
+workspace $wsw output DP-0 # Pixio monitor
+workspace $wsf output DP-0 # Pixio monitor
+workspace $wsp output DVI-I-1 # Philips monitor
+workspace $wsg output DVI-I-1 # Philips monitor
+workspace $wsj output DVI-I-1 # Philips monitor
+workspace $wsl output DP-3 # Small Acer monitor
+workspace $wsu output DP-3 # Small Acer monitor
+workspace $wsy output HDMI-0 # TV
+
+# switch to workspace
+bindsym $sup+q workspace $wsq
+bindsym $sup+w workspace $wsw
+bindsym $sup+f workspace $wsf
+bindsym $sup+p workspace $wsp
+bindsym $sup+g workspace $wsg
+bindsym $sup+j workspace $wsj
+bindsym $sup+l workspace $wsl
+bindsym $sup+u workspace $wsu
+bindsym $sup+y workspace $wsy
+
+# move focused container to workspace
+bindsym $sup+Shift+q move container to workspace $wsq
+bindsym $sup+Shift+w move container to workspace $wsw
+bindsym $sup+Shift+f move container to workspace $wsf
+bindsym $sup+Shift+p move container to workspace $wsp
+bindsym $sup+Shift+g move container to workspace $wsg
+bindsym $sup+Shift+j move container to workspace $wsj
+bindsym $sup+Shift+l move container to workspace $wsl
+bindsym $sup+Shift+u move container to workspace $wsu
+bindsym $sup+Shift+y move container to workspace $wsy
+
+# reload the configuration file
+bindsym $sup+Shift+c reload
+# restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
+bindsym $sup+r restart
+# exit i3 (logs you out of your X session)
+bindsym $sup+Shift+r exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
+# lock i3 (using gnome)
+#bindsym $sup+k exec 'dbus-send --type=method_call --dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock'
+
+# resize window
+bindsym $sup+$alt+$left resize shrink width 10 px or 10 ppt
+bindsym $sup+$alt+$down resize grow height 10 px or 10 ppt
+bindsym $sup+$alt+$up resize shrink height 10 px or 10 ppt
+bindsym $sup+$alt+$right resize grow width 10 px or 10 ppt
+# bindsym $alt+Shift+$left exec i3-smart-resize "Left" "70 px"
+# bindsym $alt+Shift+$right exec i3-smart-resize "Right" "70 px"
+# bindsym $alt+Shift+$up exec i3-smart-resize "Up" "70 px"
+# bindsym $alt+Shift+$down exec i3-smart-resize "Down" "70 px"
+# bindsym --release $alt+Shift+$left exec i3-smart-resize "Left" "70 px"
+# bindsym --release $alt+Shift+$right exec i3-smart-resize "Right" "70 px"
+# bindsym --release $alt+Shift+$up exec i3-smart-resize "Up" "70 px"
+# bindsym --release $alt+Shift+$down exec i3-smart-resize "Down" "70 px"
+
+# disable mouse warping
+# otherwise, i3 will sometimes start moving the wrong window, because the wrong window will become focused
+mouse_warping none
+
+# Open other windows in floating mode by default
+for_window [class="^.*$"] floating enable
+
+# Open windows with certain classes in tiled mode
+# (Do xprop to get the class of a window)
+for_window [class="kitty"] floating disable
+for_window [instance="emacs"] floating disable
+for_window [class="obsidian"] floating disable
+for_window [instance=".*ivaldi"] floating disable
+for_window [class="discord"] floating disable
+for_window [class="spotify"] floating disable
+for_window [class="audacity"] floating disable
+for_window [class="firefox"] floating disable
+for_window [class="^Brave"] floating disable
+for_window [class="gimp.*"] floating disable
+for_window [class="inkscape.*"] floating disable
+for_window [class="libreoffice"] floating disable
+for_window [class="Dragon"] floating disable
+for_window [class="^Unity"] floating disable
+
+#######################################################################
+# Theme — Burning Sun
+# Colours come from ~/.Xresources, which switch-to-{dark,light}-theme.sh
+# copies out of dotfiles/theme/out/<variant>/Xresources. Edit the scheme in
+# dotfiles/theme/schemes/, run theme/build.sh, then switch.
+#
+# Fallbacks below are the dark variant, so a missing xrdb still looks right.
+#######################################################################
+set_from_resource $bg i3wm.bg #0a0a0a
+set_from_resource $bg-alt i3wm.bg-alt #141312
+set_from_resource $fg i3wm.fg #ede8e0
+set_from_resource $fg-alt i3wm.fg-alt #8a8479
+set_from_resource $base0 i3wm.base0 #0a0a0a
+set_from_resource $base1 i3wm.base1 #141312
+set_from_resource $base2 i3wm.base2 #262626
+set_from_resource $base3 i3wm.base3 #5f5a52
+set_from_resource $base4 i3wm.base4 #5f5a52
+set_from_resource $base5 i3wm.base5 #8a8479
+set_from_resource $base6 i3wm.base6 #8a8479
+set_from_resource $base7 i3wm.base7 #ede8e0
+set_from_resource $base8 i3wm.base8 #f6f3ee
+set_from_resource $gray i3wm.gray #8a8479
+set_from_resource $red i3wm.red #ff4a00
+set_from_resource $orange i3wm.orange #e8724a
+set_from_resource $yellow i3wm.yellow #d0553a
+set_from_resource $green i3wm.green #a8a196
+set_from_resource $blue i3wm.blue #8a8479
+set_from_resource $dark-blue i3wm.dark-blue #5f5a52
+set_from_resource $teal i3wm.teal #8a8479
+set_from_resource $magenta i3wm.magenta #a8a196
+set_from_resource $violet i3wm.violet #5f5a52
+set_from_resource $cyan i3wm.cyan #a8a196
+set_from_resource $dark-cyan i3wm.dark-cyan #5f5a52
+
+# The rubric.
+set_from_resource $ember i3wm.ember #ff4a00
+set_from_resource $ember-dim i3wm.ember-dim #e8724a
+
+# font used by i3 for titles and bars
+# Iosevka Aile is the proportional companion to the mono; the Nerd Font
+# follows it in the list purely so pango can fall back for icon glyphs.
+font pango:Iosevka Aile, Iosevka Nerd Font Mono 12
+
+# window borders
+default_border pixel 2
+default_floating_border pixel 2
+
+bar {
+    position bottom
+    status_command i3blocks -c ~/.i3blocks.conf
+    colors {
+        background $bg
+        separator  $base2
+        statusline $base6
+
+        # The focused workspace is the only lit thing on the bar: ember text
+        # on the same black, with an ember rule above it. Everything else
+        # separates by grey value alone.
+        #                    border   background  text
+        focused_workspace    $ember   $bg         $ember
+        active_workspace     $base2   $bg         $base6
+        inactive_workspace   $bg      $bg         $base5
+        urgent_workspace     $ember   $ember      $bg
+        binding_mode         $ember   $bg         $ember
+    }
+}
+
+# window title bars and borders
+# class border|backgr|text|indicator|child_border
+# The focused window is edged in ember; every other border is a grey hairline
+# a step or two off the background. Nothing else in the WM gets a colour.
+# class                   border      backgr.  text     indicator  child_border
+client.focused            $ember      $bg      $fg      $ember     $ember
+client.focused_inactive   $base2      $bg      $base6   $base2     $base2
+client.unfocused          $base1      $bg      $base5   $base1     $base1
+client.urgent             $ember      $ember   $bg      $ember     $ember
+client.placeholder        $bg         $bg      $base5   $bg        $bg
+client.background         $bg
+
+#######################################################################
+# i3-gaps stuff
+#######################################################################
+
+# Necessary for i3-gaps to work properly (pixel can be any value)
+for_window [class="^.*"] border pixel 2
+
+# Smart Gaps
+smart_gaps on
+
+# Smart Borders
+smart_borders on
+
+# Set inner/outer gaps
+gaps inner 16
+gaps outer 0
+
+# Gaps mode
+set $mode_gaps Gaps: (o)uter, (i)nner, (h)orizontal, (v)ertical, (t)op, (r)ight, (b)ottom, (l)eft
+set $mode_gaps_outer Outer Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_inner Inner Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_horiz Horizontal Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_verti Vertical Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_top Top Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_right Right Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_bottom Bottom Gaps: +|-|0 (local), Shift + +|-|0 (global)
+set $mode_gaps_left Left Gaps: +|-|0 (local), Shift + +|-|0 (global)
+# bindsym $mod+Shift+g mode "$mode_gaps"
+
+mode "$mode_gaps" {
+        bindsym o      mode "$mode_gaps_outer"
+        bindsym i      mode "$mode_gaps_inner"
+        bindsym h      mode "$mode_gaps_horiz"
+        bindsym v      mode "$mode_gaps_verti"
+        bindsym t      mode "$mode_gaps_top"
+        bindsym r      mode "$mode_gaps_right"
+        bindsym b      mode "$mode_gaps_bottom"
+        bindsym l      mode "$mode_gaps_left"
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+
+mode "$mode_gaps_outer" {
+        bindsym plus  gaps outer current plus 5
+        bindsym minus gaps outer current minus 5
+        bindsym 0     gaps outer current set 0
+
+        bindsym Shift+plus  gaps outer all plus 5
+        bindsym Shift+minus gaps outer all minus 5
+        bindsym Shift+0     gaps outer all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_inner" {
+        bindsym plus  gaps inner current plus 5
+        bindsym minus gaps inner current minus 5
+        bindsym 0     gaps inner current set 0
+
+        bindsym Shift+plus  gaps inner all plus 5
+        bindsym Shift+minus gaps inner all minus 5
+        bindsym Shift+0     gaps inner all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_horiz" {
+        bindsym plus  gaps horizontal current plus 5
+        bindsym minus gaps horizontal current minus 5
+        bindsym 0     gaps horizontal current set 0
+
+        bindsym Shift+plus  gaps horizontal all plus 5
+        bindsym Shift+minus gaps horizontal all minus 5
+        bindsym Shift+0     gaps horizontal all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_verti" {
+        bindsym plus  gaps vertical current plus 5
+        bindsym minus gaps vertical current minus 5
+        bindsym 0     gaps vertical current set 0
+
+        bindsym Shift+plus  gaps vertical all plus 5
+        bindsym Shift+minus gaps vertical all minus 5
+        bindsym Shift+0     gaps vertical all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_top" {
+        bindsym plus  gaps top current plus 5
+        bindsym minus gaps top current minus 5
+        bindsym 0     gaps top current set 0
+
+        bindsym Shift+plus  gaps top all plus 5
+        bindsym Shift+minus gaps top all minus 5
+        bindsym Shift+0     gaps top all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_right" {
+        bindsym plus  gaps right current plus 5
+        bindsym minus gaps right current minus 5
+        bindsym 0     gaps right current set 0
+
+        bindsym Shift+plus  gaps right all plus 5
+        bindsym Shift+minus gaps right all minus 5
+        bindsym Shift+0     gaps right all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_bottom" {
+        bindsym plus  gaps bottom current plus 5
+        bindsym minus gaps bottom current minus 5
+        bindsym 0     gaps bottom current set 0
+
+        bindsym Shift+plus  gaps bottom all plus 5
+        bindsym Shift+minus gaps bottom all minus 5
+        bindsym Shift+0     gaps bottom all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+mode "$mode_gaps_left" {
+        bindsym plus  gaps left current plus 5
+        bindsym minus gaps left current minus 5
+        bindsym 0     gaps left current set 0
+
+        bindsym Shift+plus  gaps left all plus 5
+        bindsym Shift+minus gaps left all minus 5
+        bindsym Shift+0     gaps left all set 0
+
+        bindsym Return mode "$mode_gaps"
+        bindsym Escape mode "default"
+}
+
+
+#######################################################################
+# Startup
+#######################################################################
+# For Gnome
+exec --no-startup-id /usr/lib/gsd-xsettings
+exec_always --no-startup-id gnome-power-manager
+exec --no-startup-id /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
+
+exec --no-startup-id xset s off
+exec --no-startup-id xset -dpms
+
+exec /usr/bin/dropbox
+exec --no-startup-id protonmail-bridge --no-window
+
+exec_always ~/.xsessionrc
+# Wallpaper: prefer the drive-local image (~/.local is NOT Dropbox-synced, so each
+# drive keeps its own). Falls back to the synced watercolor if that file is absent,
+# which is what the old MX100 install will do.
+exec_always --no-startup-id test -f $HOME/.local/share/wallpaper.jpg && feh --no-fehbg --bg-fill $HOME/.local/share/wallpaper.jpg || feh --no-fehbg --bg-scale $HOME/Dropbox/dotfiles/watercolor-l.jpg

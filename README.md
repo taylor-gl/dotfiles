@@ -1,42 +1,68 @@
-# A collection of my dotfiles
+# dotfiles
 
-I'm currently running Linux Mint on my desktop with cinnamon and emacs. I use a custom pastel theme for everything.
+Manjaro, i3, kitty, emacs. One colour scheme, generated into every application
+that will read a file.
 
------
+## Burning Sun
 
-## main dotfiles
-| File                                        | Description                                                                                                   |
-|---------------------------------------------|---------------------------------------------------------------------------------------------------------------|
-| .kitty.conf                                 | Configuration for the [kitty terminal emulator](https://github.com/kovidgoyal/kitty), including pastel theme. |
-| .bashrc                                     | Simple bash config which mostly just sets up a few aliases and adds a few things to the path.                 |
-| .gitconfig                                  | Git config, including directory-specific GPG signing information.                                             |
-| .xinitrc                                    | Launches Xorg and i3 when I run `startx`                                                                      |
-| ssh.zip and gnupg.zip                       | Password protected `.ssh` and `.gnupg` folders.                                                               |
-| exported_dropbox_accounts.csv.gpg_symmetric | Password protected password manager backup                                                                    |
-| .xprofile                                   | Settings like cursor size, and binding the hyper key on my keyboard                                           |
+Monochrome and rubrication. Text is one ink on one ground; structure is carried
+by grey value, italic and weight rather than by hue. Vermilion is the rubric,
+spent on headings, types, errors, the focused window, and nothing else.
 
+Two variants share the palette: **dark** on `#0a0a0a` and **paper** on
+`#ede8e0`, matching taylor.gl. They turn over on the clock (07:30 and 22:00,
+from cron) and on demand from a button in the i3 bar.
 
------
+Everything lives in [`theme/`](theme/). Two base16 scheme files are the source
+of truth; a dependency-free renderer expands them through mustache templates
+into real configs, committed so a fresh checkout is already themed. See
+[`theme/README.md`](theme/README.md) for the palette, the templates, and the
+places where colour is deliberately kept because removing it would destroy
+meaning rather than noise.
 
-## emacs stuff
-| File      | Description                                                                                             |
-|-----------|---------------------------------------------------------------------------------------------------------|
-| init.el   | My emacs config file. I was using doom emacs, but I switched to vanilla. I still use the doom modeline. |
+```sh
+theme/build.sh                        # after editing a scheme or template
+~/.scripts/switch-to-dark-theme.sh    # apply (also runs from cron at 22:00)
+~/.scripts/switch-to-light-theme.sh   # apply (also runs from cron at 07:30)
+```
 
+Applications that cannot read a colour file are switched by those scripts
+instead: GTK, Obsidian, Claude Code, and a running emacs over `emacsclient`.
 
------
+## Layout
 
-## my custom scripts
-| File                                                   | Description                                                                                                                                   |
-|--------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
-| .scripts/channel_id_to_rss.sh                          | Converts a YouTube channel id to its corresponding RSS feed URL.                                                                              |
-| .scripts/set-brightness-0.sh and set-brightness-100.sh | Set my monitor's brightness using DDC/CI. I run these daily with a cron job to dim my monitor at night. Better than just a blue light filter. |
+| Path | |
+|---|---|
+| `theme/` | The colour scheme and its generator |
+| `emacs/` | `init.el`, `early-init.el`, and the generated emacs themes |
+| `.i3/`, `.i3blocks.conf` | Window manager and status bar |
+| `kitty/`, `rofi/`, `lazygit/` | Terminal, launcher, git TUI |
+| `.scripts/` | Theme switching, brightness, bar blocks, odds and ends |
+| `.bashrc`, `.gitconfig`, `.dircolors` | Shell and git |
+| `.xinitrc`, `.xprofile`, `.Xmodmap` | X session, cursor, hyper key |
+| `old/` | Retired configs, kept for reference, ignored by git |
 
+Deployment is by symlink into `$HOME` or `~/.config`. Emacs is the exception:
+three files are linked individually into `~/.emacs.d`.
 
------
+## Fonts
 
-## vivaldi css
-| File                | Description                                                                                                                                               |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| vivaldi_css         | CSS for the vivaldi web browser, which vivaldi has a [setting to load from](https://forum.vivaldi.net/topic/37802/css-modifications-experimental-feature) |
-| vimium-options.json | Colemak settings for the vimium browser extension. It gives vim-like keybindings for navigation in the browser.                                           |
+Iosevka throughout (monospace), Aile for the bar and
+launcher, Etoile for prose in emacs.
+
+## The bar
+
+Beyond the usual load and temperature blocks:
+
+- **Theme** — the current variant, as an eclipse ring or a sun. Click to flip
+  the whole desktop. Refreshed by signal, so a change driven by cron shows up
+  immediately rather than at the next poll.
+- **Email** — unread Proton mail through Proton Mail Bridge. Silent when there
+  is nothing unread. Needs `PROTON_BRIDGE_USER` and `PROTON_BRIDGE_PASS` in
+  `~/.secrets`; both come from the Bridge window, and the password is the one
+  Bridge generates, not the Proton account password.
+
+## Secrets
+
+`~/.secrets`, `.ssh/` and `.gnupg/` live in this directory but are ignored by
+git and have never been committed.

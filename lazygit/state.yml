@@ -1,0 +1,15 @@
+lastupdatecheck: 0
+recentrepos:
+    - /home/taylorgl/bl/prism
+    - /home/taylorgl/bl/beambox-logbook
+startuppopupversion: 5
+lastversion: 0.52.0
+customcommandshistory: []
+hidecommandlog: false
+ignorewhitespaceindiffview: false
+diffcontextsize: 3
+renamesimilaritythreshold: 50
+localbranchsortorder: recency
+remotebranchsortorder: alphabetical
+gitlogorder: topo-order
+gitlogshowgraph: always

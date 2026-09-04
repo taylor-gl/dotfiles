@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Personal assistant: launch Claude Code in the Obsidian vault
+cd "$HOME/Dropbox/Obsidian" || exit 1
+exec claude --dangerously-skip-permissions "$@"
